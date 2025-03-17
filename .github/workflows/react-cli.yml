@@ -1,0 +1,38 @@
+name: React CI
+
+on:
+  pull_request:
+    branches:
+      - main  # Replace with your default branch name if it's not 'main'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18  # Replace with the Node.js version your project uses
+          cache: 'npm'      # Cache npm dependencies to speed up the workflow
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Run linting (e.g., ESLint)
+      - name: Run ESLint
+        run: npm run lint  # Replace with your linting script if different
+
+      # Run tests (e.g., Jest)
+      - name: Run tests
+        run: npm test  # Replace with your test script if different
+
+      # Build the React app
+      - name: Build the app
+        run: npm run build  # Replace with your build script if different
