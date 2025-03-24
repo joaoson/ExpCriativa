@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { User, MapPin, Globe, Phone, Mail, Calendar, Heart, Users, Award, ArrowRight } from 'lucide-react';
-import Navbar from '@/components/Navbar';
+import Navbar, { LabelProp } from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -60,9 +60,16 @@ const OrganizationProfile = () => {
     ]
   };
 
+  const labels : LabelProp[] = [
+      {href: "#about", text: "About"},
+      {href: "#impact", text: "Our Impact"},
+      {href: "#stories", text: "Stories"},
+      {href: "#donate", text: "Donate"}
+    ]
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbar labels={labels} isAuthenticated={true} />
       
       <main className="flex-grow">
         <div className="relative h-60 md:h-80 w-full">
