@@ -50,7 +50,6 @@ const Navbar = () => {
             </span>
           </a>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <NavLink href="#about" isScrolled={isScrolled}>About</NavLink>
             <NavLink href="#impact" isScrolled={isScrolled}>Our Impact</NavLink>
