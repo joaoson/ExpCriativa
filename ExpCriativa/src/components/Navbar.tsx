@@ -2,12 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Heart, UserRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu"
- 
-import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -15,8 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Link } from 'react-router-dom';
-
-type Checked = DropdownMenuCheckboxItemProps["checked"]
 
 type NavbarProps = {
   labels: LabelProp[],
