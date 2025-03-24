@@ -65,7 +65,6 @@ const OrganizationProfile = () => {
       <Navbar />
       
       <main className="flex-grow">
-        {/* Cover Image */}
         <div className="relative h-60 md:h-80 w-full">
           <img 
             src={organization.coverImage} 
@@ -75,7 +74,6 @@ const OrganizationProfile = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
         </div>
         
-        {/* Organization Basic Info */}
         <div className="container-custom relative -mt-20 z-10">
           <div className="bg-white rounded-xl shadow-medium p-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
