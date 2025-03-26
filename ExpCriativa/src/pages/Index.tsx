@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import Navbar from '@/components/Navbar';
+import Navbar, { LabelProp } from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import Impact from '@/components/Impact';
 import DonationCard from '@/components/DonationCard';
@@ -10,6 +10,13 @@ import { BookOpen, Star, GraduationCap, Award, ArrowRight } from 'lucide-react';
 import AnimatedIcon from '@/components/AnimatedIcon';
 
 const Index = () => {
+  const labels : LabelProp[] = [
+    {href: "#about", text: "About"},
+    {href: "#impact", text: "Our Impact"},
+    {href: "#stories", text: "Stories"},
+    {href: "#donate", text: "Donate"}
+  ]
+
   useEffect(() => {
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -28,7 +35,7 @@ const Index = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      <Navbar labels={labels} isAuthenticated={true} />
       
       <main className="flex-grow">
         <Hero />

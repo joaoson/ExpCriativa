@@ -1,9 +1,37 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Heart } from 'lucide-react';
+import { Menu, X, Heart, UserRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu"
+ 
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Link } from 'react-router-dom';
 
-const Navbar = () => {
+type Checked = DropdownMenuCheckboxItemProps["checked"]
+
+type NavbarProps = {
+  labels: LabelProp[],
+  isAuthenticated: boolean
+}
+
+export type LabelProp = {
+  href: string,
+  text: string
+}
+
+const Navbar = ({
+  labels,
+  isAuthenticated
+} : NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -26,7 +54,7 @@ const Navbar = () => {
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isScrolled
           ? 'py-3 glassmorphism shadow-soft'
-          : 'py-6 bg-transparent'
+          : 'py-3 glassmorphism shadow-soft'
       )}
     >
       <div className="container-custom">
@@ -52,19 +80,49 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <NavLink href="#about" isScrolled={isScrolled}>About</NavLink>
-            <NavLink href="#impact" isScrolled={isScrolled}>Our Impact</NavLink>
-            <NavLink href="#stories" isScrolled={isScrolled}>Stories</NavLink>
-            <NavLink href="#donate" isScrolled={isScrolled}>Donate</NavLink>
+            {labels.map(i => 
+              (
+                <NavLink href={i.href} isScrolled={isScrolled}>{i.text}</NavLink>
+              )
+            )}
           </nav>
-
           <div className="hidden md:flex items-center space-x-4">
-            <a 
-              href="#donate" 
-              className="btn-primary px-6 py-2 text-sm"
-            >
-              Donate Now
-            </a>
+            {isAuthenticated ?
+              (
+                <>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <UserRound />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-34">
+                      <DropdownMenuLabel>John Doe</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <Link to={"/profile"}>
+                        <DropdownMenuItem>
+                          View Profile
+                        </DropdownMenuItem>
+                      </Link>
+                      <Link to={"/donationHistory"}>
+                        <DropdownMenuItem>
+                          Donation History
+                        </DropdownMenuItem>
+                      </Link>
+                      <DropdownMenuItem>
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              ) :
+              (
+                <a 
+                  href="#donate" 
+                  className="btn-primary px-6 py-2 text-sm"
+                >
+                  Donate Now
+                </a>
+              )
+            }
           </div>
 
           {/* Mobile Menu Button */}
@@ -86,19 +144,32 @@ const Navbar = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden absolute inset-x-0 top-full mt-2 px-2 pb-3 pt-2 glassmorphism shadow-medium animate-slide-down rounded-b-xl">
             <div className="px-4 py-2 space-y-1">
-              <MobileNavLink href="#about" onClick={() => setIsMobileMenuOpen(false)}>About</MobileNavLink>
-              <MobileNavLink href="#impact" onClick={() => setIsMobileMenuOpen(false)}>Our Impact</MobileNavLink>
-              <MobileNavLink href="#stories" onClick={() => setIsMobileMenuOpen(false)}>Stories</MobileNavLink>
-              <MobileNavLink href="#donate" onClick={() => setIsMobileMenuOpen(false)}>Donate</MobileNavLink>
+              {labels.map(i => (
+                <MobileNavLink href={i.href} onClick={() => setIsMobileMenuOpen(false)}>{i.text}</MobileNavLink>
+              ))}
               <div className="pt-2">
-                <a
-                  href="#donate"
-                  className="btn-primary w-full py-2.5 text-center text-sm"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Donate Now
-                </a>
+                {isAuthenticated ?
+                  (
+                    <a
+                      href=""
+                      className="btn-primary w-full py-2.5 text-center text-sm"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Go to Your Profile
+                    </a>
+                  ) :
+                  (
+                    <a
+                      href="#donate"
+                      className="btn-primary w-full py-2.5 text-center text-sm"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Donate Now
+                    </a>
+                  )
+                }
               </div>
+
             </div>
           </div>
         )}
