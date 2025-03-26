@@ -1,18 +1,71 @@
 
-import React from 'react';
-import { User, MapPin, Globe, Phone, Mail, Calendar, Heart, Users, Award, ArrowRight } from 'lucide-react';
+import { User, MapPin, Globe, Phone, Mail, Calendar, Heart, Users, Award, ArrowRight, UserRoundPen, CalendarIcon, Lock } from 'lucide-react';
 import Navbar, { LabelProp } from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@radix-ui/react-select';
+import { useNavigate } from 'react-router-dom';
+import { toast, useToast } from '@/hooks/use-toast';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+// Phone Validation Schema
+const phoneValidation = z.object({
+  countryCode: z.enum(['BR', 'US', 'PT'], {
+    errorMap: () => ({ message: "Please select a valid country" })
+  }),
+  phoneNumber: z.string()
+}).refine(
+  (data) => {
+    // Remove all non-digit characters
+    const cleanedNumber = data.phoneNumber.replace(/\D/g, '');
+
+    switch (data.countryCode) {
+      case 'BR': // Brazil
+        // Brazilian phone numbers: 10-11 digits (with or without area code)
+        return /^(\d{10,11})$/.test(cleanedNumber);
+      case 'US': // United States
+        // US phone numbers: exactly 10 digits
+        return /^(\d{10})$/.test(cleanedNumber);
+      case 'PT': // Portugal
+        // Portuguese phone numbers: 9 digits
+        return /^(\d{9})$/.test(cleanedNumber);
+      default:
+        return false;
+    }
+  },
+  { message: "Invalid phone number format" }
+);
+
+const updateSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  confirmPassword: z.string().min(6, { message: "Please confirm your password" }),
+  phone: phoneValidation,
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+}).transform((data) => {
+  // Optional: format the phone number before final submission
+  if (data.phone) {
+    data.phone.phoneNumber = data.phone.phoneNumber.replace(/\D/g, '');
+  }
+  return data;
+});
 
 const OrganizationProfile = () => {
+  const navigate = useNavigate();
   // Sample organization data - in a real app, this would come from an API or context
   const organization = {
     name: "Helping Hands Foundation",
-    logo: "/placeholder.svg",
+    logo: "https://static.vecteezy.com/system/resources/previews/020/324/784/non_2x/ong-letter-logo-design-on-white-background-ong-creative-circle-letter-logo-concept-ong-letter-design-vector.jpg",
     coverImage: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=1920&q=80",
     description: "We are dedicated to providing educational opportunities and healthcare services to underprivileged children worldwide. Since 2005, we've been making a positive impact in communities across 15 countries.",
     location: "San Francisco, California",
@@ -48,10 +101,8 @@ const OrganizationProfile = () => {
       }
     ],
     stats: [
-      { label: "Lives Impacted", value: "25,000+" },
       { label: "Countries", value: "15" },
       { label: "Projects", value: "48" },
-      { label: "Volunteers", value: "1,200+" }
     ],
     achievements: [
       "Humanitarian Excellence Award 2022",
@@ -65,7 +116,35 @@ const OrganizationProfile = () => {
       {href: "#impact", text: "Our Impact"},
       {href: "#stories", text: "Stories"},
       {href: "#donate", text: "Donate"}
-    ]
+  ];
+
+  const updateForm = useForm<z.infer<typeof updateSchema>>({
+    resolver: zodResolver(updateSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      phone: {
+        countryCode: "BR", // Default to Brazil
+        phoneNumber: "",
+      },
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof updateSchema>) => {
+      console.log("Signup values:", values);
+      
+      // Simulate successful signup
+      toast({
+        title: "Account Created",
+        description: "Welcome to KindHearts! Thank you for joining our mission.",
+        variant: "default",
+      });
+      
+      // Redirect to donation page (or another appropriate page)
+      setTimeout(() => navigate('/#donate'), 1000);
+    };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -84,7 +163,7 @@ const OrganizationProfile = () => {
         <div className="container-custom relative -mt-20 z-10">
           <div className="bg-white rounded-xl shadow-medium p-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              <Avatar className="w-24 h-24 border-4 border-white shadow-sm">
+              <Avatar className="w-24 h-24 border-2 border shadow-sm">
                 <AvatarImage src={organization.logo} alt={organization.name} />
                 <AvatarFallback className="text-3xl font-bold bg-charity-blue text-white">
                   {organization.name.substring(0, 2)}
@@ -103,10 +182,6 @@ const OrganizationProfile = () => {
                   <div className="flex items-center">
                     <Globe className="w-4 h-4 mr-1 text-charity-orange" />
                     <span>{organization.website}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1 text-charity-orange" />
-                    <span>Founded {organization.founded}</span>
                   </div>
                 </div>
               </div>
@@ -128,10 +203,177 @@ const OrganizationProfile = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Heart className="w-4 h-4" />
-                  Follow
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-2">
+                      <UserRoundPen className="w-4 h-4" />
+                        Edit Profile
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Your Profile</DialogTitle>
+                      <DialogDescription>
+                        Always keep your personal information updated.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <Form {...updateForm}>
+                        <form onSubmit={updateForm.handleSubmit(onSubmit)} className="space-y-4">
+                          <FormField
+                            control={updateForm.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Full Name</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
+                                    <Input
+                                      placeholder="John Doe"
+                                      className="pl-10"
+                                      {...field}
+                                    />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={updateForm.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
+                                    <Input
+                                      placeholder="your@email.com"
+                                      className="pl-10"
+                                      {...field}
+                                    />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={updateForm.control}
+                            name="phone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Phone Number</FormLabel>
+                                <FormControl>
+                                  <div className="flex space-x-2">
+                                    {/* TODO: ARRUMAR O +DD DESSE SELECT */}
+                                    {/* <Select
+                                      value={field.value?.countryCode}
+                                      onValueChange={(countryCode) => {
+                                        field.onChange({
+                                          ...field.value,
+                                          countryCode
+                                        });
+                                      }}
+                                    >
+                                      <SelectTrigger className="w-[100px]">
+                                        <SelectValue placeholder="Country" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="BR">
+                                          <div className="flex items-center">
+                                            🇧🇷 +55
+                                          </div>
+                                        </SelectItem>
+                                        <SelectItem value="US">
+                                          <div className="flex items-center">
+                                            🇺🇸 +1
+                                          </div>
+                                        </SelectItem>
+                                        <SelectItem value="PT">
+                                          <div className="flex items-center">
+                                            🇵🇹 +351
+                                          </div>
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select> */}
+
+                                    <Input
+                                      type="tel"
+                                      placeholder="Phone Number"
+                                      className="flex-1"
+                                      value={field.value?.phoneNumber || ''}
+                                      onChange={(e) => {
+                                        const cleanedValue = e.target.value.replace(/\D/g, '');
+                                        field.onChange({
+                                          ...field.value,
+                                          phoneNumber: cleanedValue
+                                        });
+                                      }}
+                                    />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={updateForm.control}
+                            name="password"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Password</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
+                                    <Input
+                                      type="password"
+                                      placeholder="••••••••"
+                                      className="pl-10"
+                                      {...field}
+                                    />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={updateForm.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Confirm Password</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
+                                    <Input
+                                      type="password"
+                                      placeholder="••••••••"
+                                      className="pl-10"
+                                      {...field}
+                                    />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <Button type="submit" className="w-full py-6 bg-charity-blue hover:bg-charity-blue/90 text-white">
+                            Create Account
+                          </Button>
+                        </form>
+                      </Form>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
@@ -183,7 +425,7 @@ const OrganizationProfile = () => {
                 </CardContent>
               </Card>
               
-              {/* Quick Stats */}
+              {/* Stats */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -200,26 +442,6 @@ const OrganizationProfile = () => {
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-              
-              {/* Achievements */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-charity-blue" />
-                    Achievements
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {organization.achievements.map((achievement, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-charity-orange" />
-                        <span>{achievement}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </CardContent>
               </Card>
             </div>
@@ -276,33 +498,6 @@ const OrganizationProfile = () => {
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </CardFooter>
-              </Card>
-              
-              {/* Team Members */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-charity-blue" />
-                    Our Team
-                  </CardTitle>
-                  <CardDescription>
-                    Meet the dedicated people behind our mission
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between bg-charity-light-blue/10 rounded-xl p-4">
-                    <div className="flex items-center gap-3">
-                      <Users className="w-6 h-6 text-charity-blue" />
-                      <div>
-                        <h4 className="font-medium text-charity-dark">{organization.membersCount} Team Members</h4>
-                        <p className="text-sm text-charity-gray">Committed to our cause</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      View Team
-                    </Button>
-                  </div>
-                </CardContent>
               </Card>
               
               {/* Photo Gallery Preview */}
