@@ -35,7 +35,7 @@ const Index = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar labels={labels} isAuthenticated={true} />
+      <Navbar labels={labels} isAuthenticated={false} />
       
       <main className="flex-grow">
         <Hero />
