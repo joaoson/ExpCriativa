@@ -2,12 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Heart, UserRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu"
- 
-import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -15,8 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Link } from 'react-router-dom';
-
-type Checked = DropdownMenuCheckboxItemProps["checked"]
+import { Button } from './ui/button';
 
 type NavbarProps = {
   labels: LabelProp[],
@@ -78,7 +73,6 @@ const Navbar = ({
             </span>
           </a>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {labels.map(i => 
               (
@@ -97,7 +91,7 @@ const Navbar = ({
                     <DropdownMenuContent className="w-34">
                       <DropdownMenuLabel>John Doe</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <Link to={"/profile"}>
+                      <Link to={"/organization"}>
                         <DropdownMenuItem>
                           View Profile
                         </DropdownMenuItem>
@@ -115,12 +109,18 @@ const Navbar = ({
                 </>
               ) :
               (
-                <a 
-                  href="#donate" 
-                  className="btn-primary px-6 py-2 text-sm"
-                >
-                  Donate Now
-                </a>
+                <>
+                  <Link to={"/login"}>
+                    <Button variant='default' className="w-full py-2">
+                        Log In
+                    </Button>
+                  </Link>
+                  <Link to={"/signup"}>
+                    <Button variant='ghost' className="w-full py-2">
+                        Get Started
+                    </Button>
+                  </Link>
+                </>
               )
             }
           </div>
@@ -142,32 +142,17 @@ const Navbar = ({
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute inset-x-0 top-full mt-2 px-2 pb-3 pt-2 glassmorphism shadow-medium animate-slide-down rounded-b-xl">
+          <div className="md:hidden absolute inset-x-0 top-full px-2 pb-3 pt-2 glassmorphism shadow-medium animate-slide-down rounded-b-xl">
             <div className="px-4 py-2 space-y-1">
               {labels.map(i => (
                 <MobileNavLink href={i.href} onClick={() => setIsMobileMenuOpen(false)}>{i.text}</MobileNavLink>
               ))}
               <div className="pt-2">
-                {isAuthenticated ?
-                  (
-                    <a
-                      href=""
-                      className="btn-primary w-full py-2.5 text-center text-sm"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Go to Your Profile
-                    </a>
-                  ) :
-                  (
-                    <a
-                      href="#donate"
-                      className="btn-primary w-full py-2.5 text-center text-sm"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Donate Now
-                    </a>
-                  )
-                }
+                <Link to={isAuthenticated ? "/organization" : "login"}>
+                  <Button variant='default' className="w-full py-2">
+                      {isAuthenticated ? "Your Profile" : "Log In"}
+                  </Button>
+                </Link>
               </div>
 
             </div>

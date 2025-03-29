@@ -1,18 +1,45 @@
 
-import React from 'react';
-import { User, MapPin, Globe, Phone, Mail, Calendar, Heart, Users, Award, ArrowRight } from 'lucide-react';
+import { User, MapPin, Globe, Phone, Mail, Heart, Users, Award, ArrowRight, UserRoundPen, Lock, Briefcase } from 'lucide-react';
 import Navbar, { LabelProp } from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@radix-ui/react-select';
+import { useNavigate } from 'react-router-dom';
+import { toast, useToast } from '@/hooks/use-toast';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { phoneValidation, validateCNPJ } from '@/lib/utils';
+
+const updateSchema = z.object({
+  name: z.string().min(2, { message: "Organization name must be at least 2 characters" }),
+  address: z.string().min(5, { message: "Address is required" }),
+  admin: z.string().min(2, { message: "Administrator name must be at least 2 characters" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  phone: phoneValidation,
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  confirmPassword: z.string().min(6, { message: "Please confirm your password" }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+}).transform((data) => {
+  if (data.phone) {
+    data.phone.phoneNumber = data.phone.phoneNumber.replace(/\D/g, '');
+  }
+  return data;
+});
 
 const OrganizationProfile = () => {
-  // Sample organization data - in a real app, this would come from an API or context
+  const navigate = useNavigate();
+  // Sample data
   const organization = {
     name: "Helping Hands Foundation",
-    logo: "/placeholder.svg",
+    logo: "https://static.vecteezy.com/system/resources/previews/020/324/784/non_2x/ong-letter-logo-design-on-white-background-ong-creative-circle-letter-logo-concept-ong-letter-design-vector.jpg",
     coverImage: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=1920&q=80",
     description: "We are dedicated to providing educational opportunities and healthcare services to underprivileged children worldwide. Since 2005, we've been making a positive impact in communities across 15 countries.",
     location: "San Francisco, California",
@@ -48,10 +75,8 @@ const OrganizationProfile = () => {
       }
     ],
     stats: [
-      { label: "Lives Impacted", value: "25,000+" },
       { label: "Countries", value: "15" },
       { label: "Projects", value: "48" },
-      { label: "Volunteers", value: "1,200+" }
     ],
     achievements: [
       "Humanitarian Excellence Award 2022",
@@ -65,7 +90,22 @@ const OrganizationProfile = () => {
       {href: "#impact", text: "Our Impact"},
       {href: "#stories", text: "Stories"},
       {href: "#donate", text: "Donate"}
-    ]
+  ];
+
+  const updateForm = useForm<z.infer<typeof updateSchema>>({
+      resolver: zodResolver(updateSchema),
+      defaultValues: {
+        name: "", address: "", admin: "",
+        email: "", password: "", confirmPassword: "",
+        phone: { countryCode: "BR", phoneNumber: "" }
+      }
+      });
+    
+    const onOngSubmit = (values: z.infer<typeof updateSchema>) => {
+      console.log("LoginOrg - signup:", values);
+      toast({ title: "Organization Registered", description: "Thanks for joining!", variant: "default" });
+      setTimeout(() => navigate('/'), 1000);
+    };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -84,7 +124,7 @@ const OrganizationProfile = () => {
         <div className="container-custom relative -mt-20 z-10">
           <div className="bg-white rounded-xl shadow-medium p-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              <Avatar className="w-24 h-24 border-4 border-white shadow-sm">
+              <Avatar className="w-24 h-24 border-2 border shadow-sm">
                 <AvatarImage src={organization.logo} alt={organization.name} />
                 <AvatarFallback className="text-3xl font-bold bg-charity-blue text-white">
                   {organization.name.substring(0, 2)}
@@ -104,10 +144,6 @@ const OrganizationProfile = () => {
                     <Globe className="w-4 h-4 mr-1 text-charity-orange" />
                     <span>{organization.website}</span>
                   </div>
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1 text-charity-orange" />
-                    <span>Founded {organization.founded}</span>
-                  </div>
                 </div>
               </div>
               
@@ -124,14 +160,108 @@ const OrganizationProfile = () => {
                       </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
-                      <p>Donation form would go here.</p>
+                      <p>Aqui seria a tela de pagamento (SPRINT 2)</p>
                     </div>
                   </DialogContent>
                 </Dialog>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Heart className="w-4 h-4" />
-                  Follow
-                </Button>
+                
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-2">
+                      <UserRoundPen className="w-4 h-4" />
+                        Edit Profile
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className='max-h-[95vh] overflow-y-auto'>
+                    <DialogHeader>
+                      <DialogTitle>Edit Your Profile</DialogTitle>
+                      <DialogDescription>
+                        Always keep your personal information updated.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      
+                      <Form {...updateForm}>
+                        <form onSubmit={updateForm.handleSubmit(onOngSubmit)} className="space-y-4">
+                          {[
+                            { name: "name", label: "Organization Name", icon: Briefcase },
+                            { name: "cnpj", label: "CNPJ", icon: Briefcase },
+                            { name: "address", label: "Address", icon: MapPin },
+                            { name: "admin", label: "Administrator Name", icon: User },
+                            { name: "email", label: "Email", icon: Mail },
+                          ].map(({ name, label, icon: Icon }) => (
+                            <FormField key={name} control={updateForm.control} name={name as any} render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{label}</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
+                                    <Input placeholder={label} className="pl-10" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          ))}
+        
+                          {/* Phone */}
+                          <FormField control={updateForm.control} name="phone" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone Number</FormLabel>
+                              <FormControl>
+                                <div className="flex space-x-2">
+                                  {/* TODO: Arrumar o bug ao selecionar +DDD */}
+                                  {/* <Select
+                                    value={field.value?.countryCode}
+                                    onValueChange={(countryCode) => field.onChange({ ...field.value, countryCode })}
+                                  >
+                                    <SelectTrigger className="w-[100px]">
+                                      <SelectValue placeholder="Country" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="BR">🇧🇷 +55</SelectItem>
+                                      <SelectItem value="US">🇺🇸 +1</SelectItem>
+                                      <SelectItem value="PT">🇵🇹 +351</SelectItem>
+                                    </SelectContent>
+                                  </Select> */}
+                                  <Input
+                                    type="tel"
+                                    placeholder="Phone Number"
+                                    className="flex-1"
+                                    value={field.value?.phoneNumber || ''}
+                                    onChange={(e) => field.onChange({ ...field.value, phoneNumber: e.target.value })}
+                                  />
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+        
+                          {/* Password */}
+                          {["password", "confirmPassword"].map((name) => (
+                            <FormField key={name} control={updateForm.control} name={name as any} render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{name === "password" ? "Password" : "Confirm Password"}</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
+                                    <Input type="password" placeholder="••••••••" className="pl-10" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          ))}
+        
+                          <Button type="submit" className="w-full py-6 bg-charity-blue hover:bg-charity-blue/90 text-white">
+                            Create Account
+                          </Button>
+                        </form>
+                      </Form>
+
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
@@ -183,7 +313,7 @@ const OrganizationProfile = () => {
                 </CardContent>
               </Card>
               
-              {/* Quick Stats */}
+              {/* Stats */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -200,26 +330,6 @@ const OrganizationProfile = () => {
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-              
-              {/* Achievements */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-charity-blue" />
-                    Achievements
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {organization.achievements.map((achievement, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-charity-orange" />
-                        <span>{achievement}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </CardContent>
               </Card>
             </div>
@@ -276,33 +386,6 @@ const OrganizationProfile = () => {
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </CardFooter>
-              </Card>
-              
-              {/* Team Members */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-charity-blue" />
-                    Our Team
-                  </CardTitle>
-                  <CardDescription>
-                    Meet the dedicated people behind our mission
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between bg-charity-light-blue/10 rounded-xl p-4">
-                    <div className="flex items-center gap-3">
-                      <Users className="w-6 h-6 text-charity-blue" />
-                      <div>
-                        <h4 className="font-medium text-charity-dark">{organization.membersCount} Team Members</h4>
-                        <p className="text-sm text-charity-gray">Committed to our cause</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      View Team
-                    </Button>
-                  </div>
-                </CardContent>
               </Card>
               
               {/* Photo Gallery Preview */}
