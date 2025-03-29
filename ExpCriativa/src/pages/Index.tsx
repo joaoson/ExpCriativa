@@ -3,11 +3,9 @@ import React, { useEffect } from 'react';
 import Navbar, { LabelProp } from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import Impact from '@/components/Impact';
-import DonationCard from '@/components/DonationCard';
 import ChildStory from '@/components/ChildStory';
 import Footer from '@/components/Footer';
 import { BookOpen, Star, GraduationCap, Award, ArrowRight } from 'lucide-react';
-import AnimatedIcon from '@/components/AnimatedIcon';
 
 const Index = () => {
   const labels : LabelProp[] = [
@@ -40,7 +38,6 @@ const Index = () => {
       <main className="flex-grow">
         <Hero />
         
-        {/* About Section */}
         <section id="about" className="section">
           <div className="container-custom">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -129,7 +126,6 @@ const Index = () => {
         
         <Impact />
         
-        {/* Stories Section */}
         <section id="stories" className="section">
           <div className="container-custom">
             <div className="text-center max-w-3xl mx-auto mb-16">
@@ -165,52 +161,9 @@ const Index = () => {
                 imagePath="india.jpeg"
               />
             </div>
-            
-            <div className="mt-12 text-center">
-              <a href="#" className="btn-outline px-8 py-3 text-base inline-flex items-center">
-                <span>View All Stories</span>
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </a>
-            </div>
-          </div>
-        </section>
-        
-        {/* Donation Section */}
-        <section className="section bg-charity-light-blue">
-          <div className="container-custom">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="inline-block px-3 py-1 mb-4 bg-white text-charity-blue rounded-full shadow-sm">
-                  <span className="text-sm font-medium">Make a Difference Today</span>
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">Your Generosity Can Change a Child's Life Forever</h2>
-                <p className="text-charity-dark/80 mb-6">
-                  Every donation, no matter how small, has the power to transform lives. Your support helps us provide education, healthcare, and safe environments for children in need around the world.
-                </p>
-                <p className="text-charity-dark/80 mb-8">
-                  With our transparent funding model, you can see exactly how your donation is being used and the impact it's making. Join us in creating a brighter future for the world's most vulnerable children.
-                </p>
-                <div className="bg-white p-4 rounded-xl mb-8">
-                  <div className="flex items-center">
-                    <div className="bg-charity-light-yellow rounded-lg p-2 mr-4">
-                      <Award className="h-6 w-6 text-charity-orange" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold mb-1">Certified Transparency</h4>
-                      <p className="text-sm text-charity-dark/70">95% of donations go directly to children's programs</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <DonationCard />
-              </div>
-            </div>
           </div>
         </section>
       </main>
-      
       <Footer />
     </div>
   );
