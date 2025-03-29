@@ -12,7 +12,6 @@ const Index = () => {
     {href: "#about", text: "About"},
     {href: "#impact", text: "Our Impact"},
     {href: "#stories", text: "Stories"},
-    {href: "#donate", text: "Donate"}
   ]
 
   useEffect(() => {
