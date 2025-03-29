@@ -1,5 +1,5 @@
 
-import { User, MapPin, Globe, Phone, Mail, Calendar, Heart, Users, Award, ArrowRight, UserRoundPen, CalendarIcon, Lock } from 'lucide-react';
+import { User, MapPin, Globe, Phone, Mail, Heart, Users, Award, ArrowRight, UserRoundPen, Lock, Briefcase } from 'lucide-react';
 import Navbar, { LabelProp } from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,46 +14,20 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-
-// Phone Validation Schema
-const phoneValidation = z.object({
-  countryCode: z.enum(['BR', 'US', 'PT'], {
-    errorMap: () => ({ message: "Please select a valid country" })
-  }),
-  phoneNumber: z.string()
-}).refine(
-  (data) => {
-    // Remove all non-digit characters
-    const cleanedNumber = data.phoneNumber.replace(/\D/g, '');
-
-    switch (data.countryCode) {
-      case 'BR': // Brazil
-        // Brazilian phone numbers: 10-11 digits (with or without area code)
-        return /^(\d{10,11})$/.test(cleanedNumber);
-      case 'US': // United States
-        // US phone numbers: exactly 10 digits
-        return /^(\d{10})$/.test(cleanedNumber);
-      case 'PT': // Portugal
-        // Portuguese phone numbers: 9 digits
-        return /^(\d{9})$/.test(cleanedNumber);
-      default:
-        return false;
-    }
-  },
-  { message: "Invalid phone number format" }
-);
+import { phoneValidation, validateCNPJ } from '@/lib/utils';
 
 const updateSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  name: z.string().min(2, { message: "Organization name must be at least 2 characters" }),
+  address: z.string().min(5, { message: "Address is required" }),
+  admin: z.string().min(2, { message: "Administrator name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
+  phone: phoneValidation,
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string().min(6, { message: "Please confirm your password" }),
-  phone: phoneValidation,
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 }).transform((data) => {
-  // Optional: format the phone number before final submission
   if (data.phone) {
     data.phone.phoneNumber = data.phone.phoneNumber.replace(/\D/g, '');
   }
@@ -62,7 +36,7 @@ const updateSchema = z.object({
 
 const OrganizationProfile = () => {
   const navigate = useNavigate();
-  // Sample organization data - in a real app, this would come from an API or context
+  // Sample data
   const organization = {
     name: "Helping Hands Foundation",
     logo: "https://static.vecteezy.com/system/resources/previews/020/324/784/non_2x/ong-letter-logo-design-on-white-background-ong-creative-circle-letter-logo-concept-ong-letter-design-vector.jpg",
@@ -119,31 +93,18 @@ const OrganizationProfile = () => {
   ];
 
   const updateForm = useForm<z.infer<typeof updateSchema>>({
-    resolver: zodResolver(updateSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      phone: {
-        countryCode: "BR", // Default to Brazil
-        phoneNumber: "",
-      },
-    },
-  });
-
-  const onSubmit = (values: z.infer<typeof updateSchema>) => {
-      console.log("Signup values:", values);
-      
-      // Simulate successful signup
-      toast({
-        title: "Account Created",
-        description: "Welcome to KindHearts! Thank you for joining our mission.",
-        variant: "default",
+      resolver: zodResolver(updateSchema),
+      defaultValues: {
+        name: "", address: "", admin: "",
+        email: "", password: "", confirmPassword: "",
+        phone: { countryCode: "BR", phoneNumber: "" }
+      }
       });
-      
-      // Redirect to donation page (or another appropriate page)
-      setTimeout(() => navigate('/#donate'), 1000);
+    
+    const onOngSubmit = (values: z.infer<typeof updateSchema>) => {
+      console.log("LoginOrg - signup:", values);
+      toast({ title: "Organization Registered", description: "Thanks for joining!", variant: "default" });
+      setTimeout(() => navigate('/'), 1000);
     };
 
   return (
@@ -199,10 +160,11 @@ const OrganizationProfile = () => {
                       </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
-                      <p>Donation form would go here.</p>
+                      <p>Aqui seria a tela de pagamento (SPRINT 2)</p>
                     </div>
                   </DialogContent>
                 </Dialog>
+                
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" className="flex items-center gap-2">
@@ -210,7 +172,7 @@ const OrganizationProfile = () => {
                         Edit Profile
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className='max-h-[95vh] overflow-y-auto'>
                     <DialogHeader>
                       <DialogTitle>Edit Your Profile</DialogTitle>
                       <DialogDescription>
@@ -218,159 +180,85 @@ const OrganizationProfile = () => {
                       </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
+                      
                       <Form {...updateForm}>
-                        <form onSubmit={updateForm.handleSubmit(onSubmit)} className="space-y-4">
-                          <FormField
-                            control={updateForm.control}
-                            name="name"
-                            render={({ field }) => (
+                        <form onSubmit={updateForm.handleSubmit(onOngSubmit)} className="space-y-4">
+                          {[
+                            { name: "name", label: "Organization Name", icon: Briefcase },
+                            { name: "cnpj", label: "CNPJ", icon: Briefcase },
+                            { name: "address", label: "Address", icon: MapPin },
+                            { name: "admin", label: "Administrator Name", icon: User },
+                            { name: "email", label: "Email", icon: Mail },
+                          ].map(({ name, label, icon: Icon }) => (
+                            <FormField key={name} control={updateForm.control} name={name as any} render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Full Name</FormLabel>
+                                <FormLabel>{label}</FormLabel>
                                 <FormControl>
                                   <div className="relative">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
-                                    <Input
-                                      placeholder="John Doe"
-                                      className="pl-10"
-                                      {...field}
-                                    />
+                                    <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
+                                    <Input placeholder={label} className="pl-10" {...field} />
                                   </div>
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={updateForm.control}
-                            name="email"
-                            render={({ field }) => (
+                            )} />
+                          ))}
+        
+                          {/* Phone */}
+                          <FormField control={updateForm.control} name="phone" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone Number</FormLabel>
+                              <FormControl>
+                                <div className="flex space-x-2">
+                                  {/* TODO: Arrumar o bug ao selecionar +DDD */}
+                                  {/* <Select
+                                    value={field.value?.countryCode}
+                                    onValueChange={(countryCode) => field.onChange({ ...field.value, countryCode })}
+                                  >
+                                    <SelectTrigger className="w-[100px]">
+                                      <SelectValue placeholder="Country" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="BR">🇧🇷 +55</SelectItem>
+                                      <SelectItem value="US">🇺🇸 +1</SelectItem>
+                                      <SelectItem value="PT">🇵🇹 +351</SelectItem>
+                                    </SelectContent>
+                                  </Select> */}
+                                  <Input
+                                    type="tel"
+                                    placeholder="Phone Number"
+                                    className="flex-1"
+                                    value={field.value?.phoneNumber || ''}
+                                    onChange={(e) => field.onChange({ ...field.value, phoneNumber: e.target.value })}
+                                  />
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+        
+                          {/* Password */}
+                          {["password", "confirmPassword"].map((name) => (
+                            <FormField key={name} control={updateForm.control} name={name as any} render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Email</FormLabel>
-                                <FormControl>
-                                  <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
-                                    <Input
-                                      placeholder="your@email.com"
-                                      className="pl-10"
-                                      {...field}
-                                    />
-                                  </div>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={updateForm.control}
-                            name="phone"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Phone Number</FormLabel>
-                                <FormControl>
-                                  <div className="flex space-x-2">
-                                    {/* TODO: ARRUMAR O +DD DESSE SELECT */}
-                                    {/* <Select
-                                      value={field.value?.countryCode}
-                                      onValueChange={(countryCode) => {
-                                        field.onChange({
-                                          ...field.value,
-                                          countryCode
-                                        });
-                                      }}
-                                    >
-                                      <SelectTrigger className="w-[100px]">
-                                        <SelectValue placeholder="Country" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="BR">
-                                          <div className="flex items-center">
-                                            🇧🇷 +55
-                                          </div>
-                                        </SelectItem>
-                                        <SelectItem value="US">
-                                          <div className="flex items-center">
-                                            🇺🇸 +1
-                                          </div>
-                                        </SelectItem>
-                                        <SelectItem value="PT">
-                                          <div className="flex items-center">
-                                            🇵🇹 +351
-                                          </div>
-                                        </SelectItem>
-                                      </SelectContent>
-                                    </Select> */}
-
-                                    <Input
-                                      type="tel"
-                                      placeholder="Phone Number"
-                                      className="flex-1"
-                                      value={field.value?.phoneNumber || ''}
-                                      onChange={(e) => {
-                                        const cleanedValue = e.target.value.replace(/\D/g, '');
-                                        field.onChange({
-                                          ...field.value,
-                                          phoneNumber: cleanedValue
-                                        });
-                                      }}
-                                    />
-                                  </div>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={updateForm.control}
-                            name="password"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Password</FormLabel>
+                                <FormLabel>{name === "password" ? "Password" : "Confirm Password"}</FormLabel>
                                 <FormControl>
                                   <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
-                                    <Input
-                                      type="password"
-                                      placeholder="••••••••"
-                                      className="pl-10"
-                                      {...field}
-                                    />
+                                    <Input type="password" placeholder="••••••••" className="pl-10" {...field} />
                                   </div>
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={updateForm.control}
-                            name="confirmPassword"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Confirm Password</FormLabel>
-                                <FormControl>
-                                  <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
-                                    <Input
-                                      type="password"
-                                      placeholder="••••••••"
-                                      className="pl-10"
-                                      {...field}
-                                    />
-                                  </div>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
+                            )} />
+                          ))}
+        
                           <Button type="submit" className="w-full py-6 bg-charity-blue hover:bg-charity-blue/90 text-white">
                             Create Account
                           </Button>
                         </form>
                       </Form>
+
                     </div>
                   </DialogContent>
                 </Dialog>
