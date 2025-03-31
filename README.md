@@ -16,7 +16,7 @@ A plataforma Lumen permitirá que ONGs voltadas à assistência de crianças em 
 </ul>
 <h2>Instruções de Instalação</h2>
 <pre>
-git@github.com:joaoson/ExpCriativa.git
+git clone git@github.com:joaoson/ExpCriativa.git
 </pre>
 
 Para abrir o Front (local):
