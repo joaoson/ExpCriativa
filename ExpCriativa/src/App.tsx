@@ -9,6 +9,9 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import OrganizationProfile from "./pages/Organization";
 import SignUp from "./pages/SignUp";
+import ProtectedRoute from './components/protected-route';
+import { AuthProvider } from './components/auth-context';
+
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -17,6 +20,8 @@ const queryClient = new QueryClient();
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+
       <BrowserRouter>
         <TooltipProvider>
           <Toaster />
@@ -28,10 +33,16 @@ const App = () => {
             <Route path="/organization" element={<OrganizationProfile />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<div>Dashboard Content</div>} />
+            {/* Add other protected routes here */}
+          </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </TooltipProvider>
       </BrowserRouter>
+      </AuthProvider>
+
     </QueryClientProvider>
   );
 };
