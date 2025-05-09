@@ -92,7 +92,7 @@ const Login = () => {
       });
   
       // ❺ Redirect
-      navigate("/#donate");
+      navigate("/dashboard");
     } catch (err: unknown) {
       const error =
         err instanceof Error ? err : new Error("Erro desconhecido no login.");
