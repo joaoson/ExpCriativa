@@ -1,0 +1,24 @@
+
+
+- IDEIAS DE STORED PROCEDURES PARA CRIAR:
+
+
+1
+stored procedure para anonimizar um doador que solicitou (compliance com LGPD)
+  tem que pegar as doações que ele fez e retirar os dados dele, mudar o status dela para true 
+
+
+2
+stored procedure para estornar/cancelar doações duplicadas feitas por erro do usuário 
+(ex: uma igual à outra, logo na sequência - estorna as demais e mantém a primeira)
+
+
+3
+cancelar recorrência de doações após falha em pagamento
+
+
+4
+atualizar índices do banco de dados periodicamente para melhorar o desempenho
+
+
+
