@@ -76,7 +76,7 @@ const Settings = () => {
                 <div className="space-y-2">
                   <Label htmlFor="apiKey">API Key</Label>
                   <div className="flex gap-2">
-                    <Input id="apiKey" defaultValue="sk_live_4eC39HqLyjWDarjtT1zdp7dc" type="password" />
+                    <Input id="apiKey" defaultValue="" type="password" />
                     <Button variant="outline">Regenerate</Button>
                   </div>
                 </div>
