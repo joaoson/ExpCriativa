@@ -74,9 +74,9 @@ const Settings = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="apiKey">API Key</Label>
+                  <Label htmlFor="">Key</Label>
                   <div className="flex gap-2">
-                    <Input id="apiKey" defaultValue="" type="password" />
+                    <Input id="" defaultValue="" type="password" />
                     <Button variant="outline">Regenerate</Button>
                   </div>
                 </div>
