@@ -94,16 +94,42 @@ const SignUp = () => {
     },
   });
 
-  const onPersonSubmit = (values: z.infer<typeof personSchema>) => {
-    console.log("Signup values:", values);
-    
-    toast({
-      title: "Account Created",
-      description: "Welcome to KindHearts! Thank you for joining our mission.",
-      variant: "default",
-    });
-    
-    setTimeout(() => navigate('/#donate'), 1000);
+  const onPersonSubmit = async (values: z.infer<typeof personSchema>) => {
+    try {
+      
+      const formData = new FormData();
+      formData.append("UserEmail", values.email);
+      formData.append("UserPassword", values.password);
+      formData.append("UserStatus", "Active");
+      console.log("Sending signup request to backend...");
+      console.table(formData)
+      console.log(values.email)
+      const response = await fetch('http://localhost:5107/api/Users', {
+        method: 'POST',
+        
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Something went wrong');
+      }
+  
+      toast({
+        title: "Account Created",
+        description: "Welcome to KindHearts! Thank you for joining our mission.",
+        variant: "default",
+      });
+  
+      //setTimeout(() => navigate('/#donate'), 1000);
+  
+    } catch (error: any) {
+      toast({
+        title: "Signup failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const ongForm = useForm<z.infer<typeof ongSchema>>({
