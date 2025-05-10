@@ -2,6 +2,12 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { z } from "zod";
 
+export function formatDateBRtoUS(date: string) {
+  const [day, month, year] = date.split("/");
+  // Create a Date object (format: yyyy-MM-dd)
+  return new Date(`${year}-${month}-${day}`);
+}
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }

@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import Dashboard from "./pages/Dashboard";
 import Test from "./pages/Test";
 import DonationHistory from "./pages/DonationHistory";
+import ProfilePerson from "./pages/ProfilePerson";
 
 
 // Create a QueryClient instance
@@ -47,6 +48,8 @@ const App = () => {
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/donors" element={<NotFound />} />
               <Route path="/donations" element={<DonationHistory />} />
+              <Route path="/profile" element={<ProfilePerson />} />
+
               <Route path="/reports" element={<NotFound />} />
               <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />

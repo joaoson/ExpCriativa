@@ -96,7 +96,7 @@ const Navbar = ({
                           View Profile
                         </DropdownMenuItem>
                       </Link>
-                      <Link to={"/donationHistory"}>
+                      <Link to={"/donations"}>
                         <DropdownMenuItem>
                           Donation History
                         </DropdownMenuItem>
