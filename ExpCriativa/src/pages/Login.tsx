@@ -177,7 +177,14 @@ const Login = () => {
                       Forgot password?
                     </Link>
                   </div> */}
-                  
+                  <div className="mt-2 text-right">
+                    <Link
+                      to="/forgot-password"
+                      className="text-sm text-charity-blue hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
                   <Button type="submit" className="w-full py-6 bg-charity-blue hover:bg-charity-blue/90 text-white">
                     Log In
                   </Button>
