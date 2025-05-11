@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/select';
 import { validateCPF, phoneValidation, formatDateBRtoUS } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserPerson } from '@/models/UserPerson';
+import { UserResponse } from '@/models/UserResponse';
+import { toast, useToast } from '@/hooks/use-toast';
 
 const personSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -81,11 +82,14 @@ const personSchema = z.object({
 return data;
 });
 
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aWFnb0BnbWFpbC5jb20iLCJqdGkiOiIzZWM2OGJiOC0zNmY5LTQ5NWUtOWExOC0xM2UxMGJhYjY3ZjUiLCJleHAiOjE3NDY5MTQ1OTcsImlzcyI6Im1pbmhhLWFwbGljYWNhbyIsImF1ZCI6Im1ldXMtdXN1YXJpb3MifQ.Fb6Y1bGERb-XnorgAFgivtaWKNfPOI9K2aZlcCu6V_Q"
+// PEGAR USERID E DONORID VIA ENDPOINT PARA DADOS COMO CPF ETC
 
 const ProfilePerson = () => {
+
+    const token = localStorage.getItem("accessToken");
     
-    const [user, setUser] = useState<UserPerson>();
+    const { toast } = useToast();
+    const [user, setUser] = useState<UserResponse>();
 
     const personForm = useForm<z.infer<typeof personSchema>>({
         resolver: zodResolver(personSchema),
@@ -112,7 +116,7 @@ const ProfilePerson = () => {
             },
             });
 
-            const data: UserPerson = await response.json();
+            const data: UserResponse = await response.json();
             setUser(data);
             console.log(data)
 
@@ -128,7 +132,7 @@ const ProfilePerson = () => {
         }
     }
 
-    async function updateUser (userId: number, payload: UserPerson, token: string) {
+    async function updateUser (userId: number, payload: UserResponse, token: string) {
         try {
             const formData = new FormData();
             formData.append("UserEmail", payload.userEmail);
@@ -150,7 +154,13 @@ const ProfilePerson = () => {
             }
 
             const updatedUser = await response.json();
-            console.log("User updated:", updatedUser);
+
+            toast({
+                title: "Operation successful!",
+                description: "Your information has been updated.",
+                variant: "default",
+            });
+            
             return updatedUser;
         } catch (error) {
             console.error("Failed to update user:", error);
@@ -159,7 +169,7 @@ const ProfilePerson = () => {
     };
 
     function onPersonSubmit(values: z.infer<typeof personSchema>) {
-        const payload: UserPerson = {
+        const payload: UserResponse = {
             userEmail: values.email,
             userPassword: "teste123", // carregar senha dinamicamente
             userStatus: "active", // carregar dinamicamente?

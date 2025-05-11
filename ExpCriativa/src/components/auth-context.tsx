@@ -7,6 +7,14 @@ interface AuthContextType {
   userEmail: string | null;
   login: (token: string, email: string) => void;
   logout: () => void;
+  getJwtToken: (email: string, password: string) => Promise<string>,
+  parseJwt(token: string) : {
+      sub: string;
+      jti: string;
+      exp: number;
+      iss: string;
+      aud: string;
+    };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -102,8 +110,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUserEmail(null);
   };
 
+  async function getJwtToken (email: string, password: string) {
+    try {
+      const res = await fetch("https://localhost:7142/api/Auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "*/*",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorText =
+          (await res.text()) || `GET token failed with status ${res.status}`;
+        throw new Error(errorText);
+      }
+
+      const { token } = await res.json() as { token: string };
+      return token;  
+    } catch (err: unknown) {
+        throw err instanceof Error ? err : new Error("Unknown error when getting JWT token.");
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, loading, userEmail, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, loading, userEmail, login, logout, getJwtToken, parseJwt }}>
       {children}
     </AuthContext.Provider>
   );

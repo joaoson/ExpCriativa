@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Heart, Lock, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AnimatedIcon from '@/components/AnimatedIcon';
-import { useAuth,AuthProvider } from '@/components/auth-context';
+import { useAuth } from '@/components/auth-context';
 
 // Login Schema
 const loginSchema = z.object({
@@ -20,13 +20,8 @@ const loginSchema = z.object({
 const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { login ,isAuthenticated} = useAuth();
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-  // Login form
+  const { login, isAuthenticated, parseJwt, getJwtToken} = useAuth();
+
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -35,63 +30,27 @@ const Login = () => {
     },
   });
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
-  
     try {
-      const res = await fetch("http://localhost:5107/api/Auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "*/*",
-        },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-        }),
-      });
-      function parseJwt(token: string) {
-        const base64Url = token.split('.')[1];           // parte do meio
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(
-          atob(base64)
-            .split('')
-            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-            .join('')
-        );
-        return JSON.parse(jsonPayload) as {
-          sub: string; jti: string; exp: number;
-          iss: string; aud: string;
-        };
-      }
+      const token = await getJwtToken(values.email, values.password)
   
-      // ❶ Handle non‑200 status codes early
-      if (!res.ok) {
-        const errorText =
-          (await res.text()) || `Login failed with status ${res.status}`;
-        throw new Error(errorText);
-      }
-
-      // ❷ Parse the JSON payload
-      const { token } = await res.json() as { token: string };
-
-      // ❸ Decodifica o payload
+      // Decodifica o payload
       const payload = parseJwt(token);   // { sub, jti, exp, ... }
       const userEmail = payload.sub;     // --> "joao@test.com"
       login(token, userEmail);
   
-      // ❸ Persist the token & update context
-      localStorage.setItem("accessToken", token);
-      localStorage.setItem("userEmail", userEmail);
-
-  
-      // ❹ Toast success
       toast({
         title: "Login bem‑sucedido!",
         description:`Bem‑vindo de volta, ${userEmail}!`,
         variant: "default",
       });
   
-      // ❺ Redirect
       navigate("/dashboard");
     } catch (err: unknown) {
       const error =
@@ -171,12 +130,6 @@ const Login = () => {
                       </FormItem>
                     )}
                   />
-                  
-                  {/* <div className="flex justify-end">
-                    <Link to="#" className="text-sm text-charity-blue hover:underline">
-                      Forgot password?
-                    </Link>
-                  </div> */}
                   
                   <Button type="submit" className="w-full py-6 bg-charity-blue hover:bg-charity-blue/90 text-white">
                     Log In

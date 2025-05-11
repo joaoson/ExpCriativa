@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,8 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { validateCNPJ, validateCPF, phoneValidation } from '@/lib/utils';
+import { useAuth } from '@/components/auth-context';
+import { UserResponse } from '@/models/UserResponse';
 
 
 // Signup Schema
@@ -75,6 +77,7 @@ const ongSchema = z.object({
 const SignUp = () => {
   const [activeTab, setActiveTab] = useState<string>("person");
   const { toast } = useToast();
+  const { login, isAuthenticated, parseJwt, getJwtToken} = useAuth();
   const navigate = useNavigate();
 
   // Signup form
@@ -94,19 +97,44 @@ const SignUp = () => {
     },
   });
 
+  async function updateDonorInfo (id: number, userDocument: string, token: string) {
+    try {
+      const formData = {
+        donorDocument: userDocument,
+        donorLocation: "Curitiba",
+      }
+
+      const response = await fetch(`https://localhost:7142/api/Donors/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const updatedUser = await response.json();
+      return updatedUser;
+    } catch (error) {
+        console.error("Failed to update user:", error);
+        throw error;
+    }
+};
+
   const onPersonSubmit = async (values: z.infer<typeof personSchema>) => {
     try {
-      
       const formData = new FormData();
       formData.append("UserEmail", values.email);
       formData.append("UserPassword", values.password);
+      formData.append("UserPhone", values.phone.phoneNumber)
       formData.append("UserStatus", "Active");
-      console.log("Sending signup request to backend...");
-      console.table(formData)
-      console.log(values.email)
-      const response = await fetch('http://localhost:5107/api/Users', {
+      
+      const response = await fetch('https://localhost:7142/api/Users', {
         method: 'POST',
-        
         body: formData,
       });
   
@@ -114,15 +142,24 @@ const SignUp = () => {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Something went wrong');
       }
-  
+
+      const userData: UserResponse = await response.json()
+
+      // Update DONOR ID with info
+      const token = await getJwtToken(values.email, values.password)
+      updateDonorInfo(userData.donorId, values.cpf, token)
+
+      const payload = parseJwt(token);
+      const userEmail = payload.sub;
+      login(token, userEmail);
+
+      navigate("/donations");
+
       toast({
         title: "Account Created",
         description: "Welcome to KindHearts! Thank you for joining our mission.",
         variant: "default",
-      });
-  
-      //setTimeout(() => navigate('/#donate'), 1000);
-  
+      });  
     } catch (error: any) {
       toast({
         title: "Signup failed",

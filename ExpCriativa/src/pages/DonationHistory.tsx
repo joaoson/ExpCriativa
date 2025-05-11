@@ -24,14 +24,15 @@ const labels : LabelProp[] = [
     {href: "#donate", text: "Donate"}
 ];
 
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJqdGkiOiI1YzljODU3OS1jMWFjLTRjZWItYWFlMy0zODZlMGU5N2I1OTciLCJleHAiOjE3NDY5MDk0NDcsImlzcyI6Im1pbmhhLWFwbGljYWNhbyIsImF1ZCI6Im1ldXMtdXN1YXJpb3MifQ.x3dpIPruZTqFkQKlvnZzxdEdvegY-J3pyPgGqM2m-WI"
-
-// TODO: PEGAR TOKEN DINAMICAMENTE, RETORNAR INFORMAÇÕES DA ONG NA REQUEST (TALVEZ PRECISE DE ENDPOINT NOVO) E FILTRAR POR NOME DA ONG
+// PRECISO DO DONOR ID PARA PEGAR AS DOAÇÕES DO USUÁRIO
+// PRECISO DE UM ENDPOINT COM JOIN ENTRE ORGS E DOAÇÕES PARA QUE EU CONSIGA RETORNAR INFORMAÇÕES SOBRE A ORG EM CADA CARD DE DOAÇÃO
 
 const DonationHistory = () => {
 
     let [donations, setDonations] = useState<Donations[]>([])
     let [searchQuery, setSearchQuery] = useState("");
+    
+    const token = localStorage.getItem("accessToken");
 
     const fetchDonations = async () => {
         try {
@@ -45,7 +46,6 @@ const DonationHistory = () => {
 
             const data: Donations[] = await response.json();
             setDonations(data);
-            console.log("aqui")
             console.log(data)
         } catch (error) {
             console.error("Failed to fetch donations:", error);
