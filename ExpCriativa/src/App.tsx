@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import Test from "./pages/Test";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import CookiePolicy from '@/pages/CookiesPolicy';
 
 
 // Create a QueryClient instance
@@ -40,6 +41,7 @@ const App = () => {
             <Route path="/organization" element={<OrganizationProfile />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard/>} />
