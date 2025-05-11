@@ -74,9 +74,9 @@ const Navbar = ({
           </a>
 
           <nav className="hidden md:flex items-center space-x-8">
-            {labels.map(i => 
+            {labels.map((i, index) => 
               (
-                <NavLink href={i.href} isScrolled={isScrolled}>{i.text}</NavLink>
+                <NavLink key={index} href={i.href} isScrolled={isScrolled}>{i.text}</NavLink>
               )
             )}
           </nav>
