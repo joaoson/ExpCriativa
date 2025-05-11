@@ -197,9 +197,9 @@ const Login = () => {
 
           <div className="mt-8 text-center text-sm text-charity-dark/70">
             By continuing, you agree to Lumen's
-            <Link to="#" className="text-charity-blue hover:underline mx-1">Terms of Service</Link>
+            <Link to="/terms" onClick={() => window.scrollTo(0, 0)} className="text-charity-blue hover:underline mx-1">Terms of Service</Link>
             and
-            <Link to="#" className="text-charity-blue hover:underline ml-1">Privacy Policy</Link>.
+            <Link to="/policy" onClick={() => window.scrollTo(0, 0)} className="text-charity-blue hover:underline ml-1">Privacy Policy</Link>.
           </div>
         </div>
       </div>

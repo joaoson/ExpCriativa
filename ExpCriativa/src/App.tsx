@@ -19,6 +19,7 @@ import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 
+
 // Create a QueryClient instance
 const queryClient = new QueryClient();
 
