@@ -15,6 +15,7 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Dashboard from "./pages/Dashboard";
 import Test from "./pages/Test";
+import TermsOfService from './pages/TermsOfService';
 
 
 // Create a QueryClient instance
@@ -49,6 +50,7 @@ const App = () => {
               <Route path="/reports" element={<NotFound />} />
               <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/terms" element={<TermsOfService />} />
           </Routes>
         </TooltipProvider>
       </BrowserRouter>
