@@ -97,45 +97,24 @@ const SignUp = () => {
     },
   });
 
-  async function updateDonorInfo (id: number, userDocument: string, token: string) {
+  async function onPersonSubmit (values: z.infer<typeof personSchema>) {
     try {
-      const formData = {
-        donorDocument: userDocument,
-        donorLocation: "Curitiba",
+      const body = {
+        UserEmail: values.email,
+        UserPassword: values.password,
+        UserStatus: "Active",
+        UserBirthdate: values.dateOfBirth.toISOString(),
+        UserPhone: values.phone.phoneNumber,
+        DonorDocument: values.cpf,
+        DonorLocation: "Curitiba"
       }
-
-      const response = await fetch(`https://localhost:7142/api/Donors/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-          body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const updatedUser = await response.json();
-      return updatedUser;
-    } catch (error) {
-        console.error("Failed to update user:", error);
-        throw error;
-    }
-};
-
-  const onPersonSubmit = async (values: z.infer<typeof personSchema>) => {
-    try {
-      const formData = new FormData();
-      formData.append("UserEmail", values.email);
-      formData.append("UserPassword", values.password);
-      formData.append("UserPhone", values.phone.phoneNumber)
-      formData.append("UserStatus", "Active");
       
-      const response = await fetch('https://localhost:7142/api/Users', {
+      const response = await fetch('https://localhost:7142/api/Users/create-with-donor', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body),
       });
   
       if (!response.ok) {
@@ -143,12 +122,7 @@ const SignUp = () => {
         throw new Error(errorData.message || 'Something went wrong');
       }
 
-      const userData: UserResponse = await response.json()
-
-      // Update DONOR ID with info
       const token = await getJwtToken(values.email, values.password)
-      updateDonorInfo(userData.donorId, values.cpf, token)
-
       const payload = parseJwt(token);
       const userEmail = payload.sub;
       login(token, userEmail);
@@ -177,11 +151,56 @@ const SignUp = () => {
       phone: { countryCode: "BR", phoneNumber: "" }
     }
     });
-  
-  const onOngSubmit = (values: z.infer<typeof ongSchema>) => {
-    console.log("LoginOrg - signup:", values);
-    toast({ title: "Organization Registered", description: "Thanks for joining!", variant: "default" });
-    setTimeout(() => navigate('/'), 1000);
+  // PRECISA ADICIONAR ALGUNS CAMPOS NO FRONT E NO BACK
+  // PRECISA DESAUTENTICAR O POST DE ORG E CRIAR JWT PARA FAZER O LOGIN COMO ORG
+  // AUTENTICAR APÓS AUTENTICAÇÃO
+  async function onOngSubmit (values: z.infer<typeof ongSchema>) {
+    try {
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aWFnb0BnbWFpbC5jb20iLCJqdGkiOiIxODk0NWMyMi00MmFjLTRkOTItYmQxNC1mYzJkMWZlNmQxYzgiLCJleHAiOjE3NDcwMTg3MTcsImlzcyI6Im1pbmhhLWFwbGljYWNhbyIsImF1ZCI6Im1ldXMtdXN1YXJpb3MifQ.LJEp6tpKSwO0L5LGnC_DmaiPnJRHBzAxoSRWWsMaE44"
+    
+      const body = {
+          OrgDescription: "Adicionar campo de descrição no Front",
+          OrgWebsiteUrl: "Adicionar campo de descrição no Front",
+          OrgLocation: values.address,
+          OrgFoundationDate: new Date().toISOString(),
+          // OrgFoundationName: values.name,
+          AdminName: values.admin,
+          AdminPhone: values.phone.phoneNumber
+          // OrgCnpj: values.cnpj //N ESTÁ NO BD AINDA
+          // OrgEmail: values.email //N ESTÁ NO BD AINDA
+          // OrgPassword: values.password //N ESTÁ NO BD AINDA
+        }
+        
+      const response = await fetch('https://localhost:7142/api/Orgs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+          const errorData = await response.json();
+          console.log(errorData)
+          throw new Error(errorData.message || 'Something went wrong');
+        }
+
+      // const token = await getJwtToken(values.email, values.password)
+      // const payload = parseJwt(token);
+      // const userEmail = payload.sub;
+      // login(token, userEmail);
+
+      navigate("/dashboard")
+
+      toast({ title: "Organization Registered", description: "Thanks for joining!", variant: "default" });
+    } catch (error) {
+      toast({
+        title: "Signup failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
