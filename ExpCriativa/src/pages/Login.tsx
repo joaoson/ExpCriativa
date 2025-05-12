@@ -157,6 +157,19 @@ const Login = () => {
                     )}
                   />
                   
+                  {/* <div className="flex justify-end">
+                    <Link to="#" className="text-sm text-charity-blue hover:underline">
+                      Forgot password?
+                    </Link>
+                  </div> */}
+                  <div className="mt-2 text-right">
+                    <Link
+                      to="/forgot-password"
+                      className="text-sm text-charity-blue hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
                   <Button type="submit" className="w-full py-6 bg-charity-blue hover:bg-charity-blue/90 text-white">
                     Log In
                   </Button>
@@ -176,9 +189,9 @@ const Login = () => {
 
           <div className="mt-8 text-center text-sm text-charity-dark/70">
             By continuing, you agree to Lumen's
-            <Link to="#" className="text-charity-blue hover:underline mx-1">Terms of Service</Link>
+              <Link to="/terms" onClick={() => window.scrollTo(0, 0)} className="text-charity-blue hover:underline mx-1">Terms of Service</Link>
             and
-            <Link to="#" className="text-charity-blue hover:underline ml-1">Privacy Policy</Link>.
+            <Link to="/policy" onClick={() => window.scrollTo(0, 0)} className="text-charity-blue hover:underline ml-1">Privacy Policy</Link>.
           </div>
         </div>
       </div>
