@@ -22,6 +22,7 @@ import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 
+
 // Create a QueryClient instance
 const queryClient = new QueryClient();
 
@@ -58,6 +59,8 @@ const App = () => {
               <Route path="/reports" element={<NotFound />} />
               <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/policy" element={<PrivacyPolicy />} />
           </Routes>
         </TooltipProvider>
       </BrowserRouter>
