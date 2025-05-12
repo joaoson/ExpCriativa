@@ -122,10 +122,11 @@ const SignUp = () => {
         throw new Error(errorData.message || 'Something went wrong');
       }
 
+      const data: UserResponse = await response.json()
       const token = await getJwtToken(values.email, values.password)
       const payload = parseJwt(token);
       const userEmail = payload.sub;
-      login(token, userEmail);
+      login(token, userEmail, data.userId);
 
       navigate("/donations");
 

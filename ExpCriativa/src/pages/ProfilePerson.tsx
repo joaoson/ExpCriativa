@@ -82,7 +82,7 @@ const personSchema = z.object({
 return data;
 });
 
-// PEGAR USERID E DONORID VIA ENDPOINT PARA DADOS COMO CPF ETC
+// PEGAR USERID E DONORID VIA ENDPOINT PARA ALTERAR DADOS COMO CPF ETC
 
 const ProfilePerson = () => {
 
@@ -107,7 +107,7 @@ const ProfilePerson = () => {
         }
     })
 
-    async function getUser(id: number) {
+    async function getUser(id: string) {
         try {
             const response = await fetch(`https://localhost:7142/api/Users/${id}`, {
             method: "GET",
@@ -191,7 +191,8 @@ const ProfilePerson = () => {
     }
 
     useEffect(() => {
-        getUser(4)
+        const id = localStorage.getItem("userId")
+        getUser(id)
     }, [])
     
     return (

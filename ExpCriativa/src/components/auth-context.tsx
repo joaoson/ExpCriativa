@@ -5,7 +5,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   userEmail: string | null;
-  login: (token: string, email: string) => void;
+  login: (token: string, email: string, id: number) => void;
   logout: () => void;
   getJwtToken: (email: string, password: string) => Promise<string>,
   parseJwt(token: string) : {
@@ -75,6 +75,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Token is expired or missing - clean up
         localStorage.removeItem('accessToken');
         localStorage.removeItem('userEmail');
+        localStorage.removeItem('userId');
         localStorage.removeItem('token');
         setIsAuthenticated(false);
         setUserEmail(null);
@@ -95,9 +96,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => clearInterval(checkInterval);
   }, []);
 
-  const login = (token: string, email: string) => {
+  const login = (token: string, email: string, id: number) => {
     localStorage.setItem('accessToken', token);
     localStorage.setItem('userEmail', email);
+    localStorage.setItem('userId', id.toString())
     setIsAuthenticated(true);
     setUserEmail(email);
   };
@@ -106,6 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('token');
+    localStorage.removeItem('userId');
     setIsAuthenticated(false);
     setUserEmail(null);
   };

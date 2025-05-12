@@ -10,12 +10,30 @@ import { ArrowLeft, Heart, Lock, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AnimatedIcon from '@/components/AnimatedIcon';
 import { useAuth } from '@/components/auth-context';
+import { UserResponse } from '@/models/UserResponse';
 
 // Login Schema
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
+
+async function getUsers(token:string) {
+  try {
+    const response = await fetch("https://localhost:7142/api/Users", {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+    },
+    });
+
+    const data: UserResponse[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch donations:", error);
+  }
+}
 
 const Login = () => {
   const { toast } = useToast();
@@ -43,8 +61,16 @@ const Login = () => {
       // Decodifica o payload
       const payload = parseJwt(token);   // { sub, jti, exp, ... }
       const userEmail = payload.sub;     // --> "joao@test.com"
-      login(token, userEmail);
-  
+
+      const users: UserResponse[] = await getUsers(token);
+      const filteredUser = users.filter(user => user.userEmail == userEmail)
+
+      if (!filteredUser) {
+        throw new Error("Non existent user.")
+      }
+
+      login(token, userEmail, filteredUser[0].userId);
+
       toast({
         title: "Login bem‑sucedido!",
         description:`Bem‑vindo de volta, ${userEmail}!`,
