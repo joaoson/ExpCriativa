@@ -62,7 +62,7 @@ const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            <a href="#donate" className="btn-primary text-base px-8 py-3">
+            <a href="/login" className="btn-primary text-base px-8 py-3">
               Donate Now
             </a>
             <a href="#about" className="btn-outline text-base px-8 py-3">
