@@ -86,7 +86,7 @@ const Footer = () => {
           <div className="flex space-x-4 mt-4 md:mt-0">
             <Link to="/policy" onClick={() => window.scrollTo(0, 0)} className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link to="/terms" onClick={() => window.scrollTo(0, 0)} className="hover:text-white transition-colors">Terms of Service</Link>
-            <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
+            <Link to="/cookie-policy" onClick={() => window.scrollTo(0, 0)} className="hover:text-white transition-colors">Cookies Policy</Link>
           </div>
         </div>
       </div>

@@ -15,6 +15,9 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Dashboard from "./pages/Dashboard";
 import Test from "./pages/Test";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import CookiePolicy from '@/pages/CookiesPolicy';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
@@ -39,7 +42,11 @@ const App = () => {
             <Route path="/test" element={<Test />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/organization" element={<OrganizationProfile />} />
-
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/policy" element={<PrivacyPolicy />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard/>} />
