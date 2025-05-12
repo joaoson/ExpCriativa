@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Heart, Mail, Phone, MapPin, Globe, Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -83,8 +84,8 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center text-charity-gray text-sm">
           <p>&copy; {new Date().getFullYear()} Lumen. All rights reserved.</p>
           <div className="flex space-x-4 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            <Link to="/policy" onClick={() => window.scrollTo(0, 0)} className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="/terms" onClick={() => window.scrollTo(0, 0)} className="hover:text-white transition-colors">Terms of Service</Link>
             <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
           </div>
         </div>
