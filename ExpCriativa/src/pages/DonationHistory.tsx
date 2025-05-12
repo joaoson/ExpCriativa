@@ -9,7 +9,7 @@ function changeStatusColor(status: string) {
         case "completed":
             return "text-green-700"
         case "pending":
-            return "text-yellow-700"
+            return "text-yellow-600"
         case "cancelled":
             return "text-red-700"
         default:
@@ -108,11 +108,14 @@ const DonationHistory = () => {
                         <h3 className="text-lg font-semibold text-charity-dark">
                             Nome da Instituição (com href)
                         </h3>
-                        <div className="flex items-center text-sm text-charity-gray mb-2">
-                            <CircleDollarSign className="w-3.5 h-3.5 mr-1 text-charity-orange" />
+                        <p className="text-charity-gray text-sm mb-2">
+                            {donation.donationDate.toString()}
+                        </p>
+                        <div className="flex items-center text-sm text-charity-blue mb-2">
+                            <CircleDollarSign className="w-3.5 h-3.5 mr-1 text-charity-blue" />
                             <span>${donation.donationAmount.toFixed(2)}</span>
                         </div>
-                        <p className="text-charity-gray text-sm mb-2">
+                        <p className="text-charity-dark text-sm mb-2 font-light">
                             {donation.donationDonorMessage || "No message"}
                         </p>
                         <div className={
