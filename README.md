@@ -19,14 +19,14 @@ A plataforma Lumen permitirá que ONGs voltadas à assistência de crianças em 
 git clone git@github.com:joaoson/ExpCriativa.git
 </pre>
 
+Google Docs:
+https://docs.google.com/document/d/1NvohagQlH2smIwKUCJ2KemoWRx41h6FF6SQcTr2c7KQ/edit?usp=sharing
+
+Trello:
+https://trello.com/b/JBOn5sq4/lumen-bsi-expcriativa-5-periodo
+
+
 Para abrir o Front (local):
 1) cd ./ExpCriativa
 2) npm i
 3) npm run dev
-
-<h2>Links úteis</h2>
-<ul>
-  <li>https://www.figma.com/design/ka9ypyHfrbgsE4L8t7Fp3A/Exp-Criativa-5?node-id=0-1&t=SZ2rPiY0CFDXZNfz-1</li>
-  <li>https://docs.google.com/document/d/1NvohagQlH2smIwKUCJ2KemoWRx41h6FF6SQcTr2c7KQ/edit?usp=sharing
-</li>
-</ul>
