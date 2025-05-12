@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,8 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { validateCNPJ, validateCPF, phoneValidation } from '@/lib/utils';
+import { useAuth } from '@/components/auth-context';
+import { UserResponse } from '@/models/UserResponse';
 
 
 // Signup Schema
@@ -75,6 +77,7 @@ const ongSchema = z.object({
 const SignUp = () => {
   const [activeTab, setActiveTab] = useState<string>("person");
   const { toast } = useToast();
+  const { login, isAuthenticated, parseJwt, getJwtToken} = useAuth();
   const navigate = useNavigate();
 
   // Signup form
@@ -94,35 +97,44 @@ const SignUp = () => {
     },
   });
 
-  const onPersonSubmit = async (values: z.infer<typeof personSchema>) => {
+  async function onPersonSubmit (values: z.infer<typeof personSchema>) {
     try {
+      const body = {
+        UserEmail: values.email,
+        UserPassword: values.password,
+        UserStatus: "Active",
+        UserBirthdate: values.dateOfBirth.toISOString(),
+        UserPhone: values.phone.phoneNumber,
+        DonorDocument: values.cpf,
+        DonorLocation: "Curitiba"
+      }
       
-      const formData = new FormData();
-      formData.append("UserEmail", values.email);
-      formData.append("UserPassword", values.password);
-      formData.append("UserStatus", "Active");
-      console.log("Sending signup request to backend...");
-      console.table(formData)
-      console.log(values.email)
-      const response = await fetch('http://localhost:5107/api/Users', {
+      const response = await fetch('https://localhost:7142/api/Users/create-with-donor', {
         method: 'POST',
-        
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body),
       });
   
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Something went wrong');
       }
-  
+
+      const data: UserResponse = await response.json()
+      const token = await getJwtToken(values.email, values.password)
+      const payload = parseJwt(token);
+      const userEmail = payload.sub;
+      login(token, userEmail, data.userId);
+
+      navigate("/donations");
+
       toast({
         title: "Account Created",
         description: "Welcome to KindHearts! Thank you for joining our mission.",
         variant: "default",
-      });
-  
-      //setTimeout(() => navigate('/#donate'), 1000);
-  
+      });  
     } catch (error: any) {
       toast({
         title: "Signup failed",
@@ -140,11 +152,56 @@ const SignUp = () => {
       phone: { countryCode: "BR", phoneNumber: "" }
     }
     });
-  
-  const onOngSubmit = (values: z.infer<typeof ongSchema>) => {
-    console.log("LoginOrg - signup:", values);
-    toast({ title: "Organization Registered", description: "Thanks for joining!", variant: "default" });
-    setTimeout(() => navigate('/'), 1000);
+  // PRECISA ADICIONAR ALGUNS CAMPOS NO FRONT E NO BACK
+  // PRECISA DESAUTENTICAR O POST DE ORG E CRIAR JWT PARA FAZER O LOGIN COMO ORG
+  // AUTENTICAR APÓS AUTENTICAÇÃO
+  async function onOngSubmit (values: z.infer<typeof ongSchema>) {
+    try {
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aWFnb0BnbWFpbC5jb20iLCJqdGkiOiIxODk0NWMyMi00MmFjLTRkOTItYmQxNC1mYzJkMWZlNmQxYzgiLCJleHAiOjE3NDcwMTg3MTcsImlzcyI6Im1pbmhhLWFwbGljYWNhbyIsImF1ZCI6Im1ldXMtdXN1YXJpb3MifQ.LJEp6tpKSwO0L5LGnC_DmaiPnJRHBzAxoSRWWsMaE44"
+    
+      const body = {
+          OrgDescription: "Adicionar campo de descrição no Front",
+          OrgWebsiteUrl: "Adicionar campo de descrição no Front",
+          OrgLocation: values.address,
+          OrgFoundationDate: new Date().toISOString(),
+          // OrgFoundationName: values.name,
+          AdminName: values.admin,
+          AdminPhone: values.phone.phoneNumber
+          // OrgCnpj: values.cnpj //N ESTÁ NO BD AINDA
+          // OrgEmail: values.email //N ESTÁ NO BD AINDA
+          // OrgPassword: values.password //N ESTÁ NO BD AINDA
+        }
+        
+      const response = await fetch('https://localhost:7142/api/Orgs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+          const errorData = await response.json();
+          console.log(errorData)
+          throw new Error(errorData.message || 'Something went wrong');
+        }
+
+      // const token = await getJwtToken(values.email, values.password)
+      // const payload = parseJwt(token);
+      // const userEmail = payload.sub;
+      // login(token, userEmail);
+
+      navigate("/dashboard")
+
+      toast({ title: "Organization Registered", description: "Thanks for joining!", variant: "default" });
+    } catch (error) {
+      toast({
+        title: "Signup failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (

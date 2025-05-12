@@ -20,6 +20,8 @@ import ResetPassword from "./pages/ResetPassword";
 import CookiePolicy from '@/pages/CookiesPolicy';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import DonationHistory from "./pages/DonationHistory";
+import ProfilePerson from "./pages/ProfilePerson";
 
 
 
@@ -50,12 +52,13 @@ const App = () => {
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard/>} />
+              <Route path="/donations" element={<DonationHistory />} />
+                <Route path="/profile" element={<ProfilePerson />} />
             {/* Add other protected routes here */}
             </Route>
             <Route path="/" element={<Index />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/donors" element={<NotFound />} />
-              <Route path="/donations" element={<NotFound />} />
               <Route path="/reports" element={<NotFound />} />
               <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />

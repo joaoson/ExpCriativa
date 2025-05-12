@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Heart, Lock, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AnimatedIcon from '@/components/AnimatedIcon';
-import { useAuth,AuthProvider } from '@/components/auth-context';
+import { useAuth } from '@/components/auth-context';
+import { UserResponse } from '@/models/UserResponse';
 
 // Login Schema
 const loginSchema = z.object({
@@ -17,16 +18,28 @@ const loginSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
 
+async function getUsers(token:string) {
+  try {
+    const response = await fetch("https://localhost:7142/api/Users", {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+    },
+    });
+
+    const data: UserResponse[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch donations:", error);
+  }
+}
+
 const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { login ,isAuthenticated} = useAuth();
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-  // Login form
+  const { login, isAuthenticated, parseJwt, getJwtToken} = useAuth();
+
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -35,64 +48,36 @@ const Login = () => {
     },
   });
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
-  
     try {
-      const res = await fetch("http://localhost:5107/api/Auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "*/*",
-        },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-        }),
-      });
-      function parseJwt(token: string) {
-        const base64Url = token.split('.')[1];           // parte do meio
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(
-          atob(base64)
-            .split('')
-            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-            .join('')
-        );
-        return JSON.parse(jsonPayload) as {
-          sub: string; jti: string; exp: number;
-          iss: string; aud: string;
-        };
-      }
+      const token = await getJwtToken(values.email, values.password)
   
-      // ❶ Handle non‑200 status codes early
-      if (!res.ok) {
-        const errorText =
-          (await res.text()) || `Login failed with status ${res.status}`;
-        throw new Error(errorText);
-      }
-
-      // ❷ Parse the JSON payload
-      const { token } = await res.json() as { token: string };
-
-      // ❸ Decodifica o payload
+      // Decodifica o payload
       const payload = parseJwt(token);   // { sub, jti, exp, ... }
       const userEmail = payload.sub;     // --> "joao@test.com"
-      login(token, userEmail);
-  
-      // ❸ Persist the token & update context
-      localStorage.setItem("accessToken", token);
-      localStorage.setItem("userEmail", userEmail);
 
-  
-      // ❹ Toast success
+      const users: UserResponse[] = await getUsers(token);
+      const filteredUser = users.filter(user => user.userEmail == userEmail)
+
+      if (!filteredUser) {
+        throw new Error("Non existent user.")
+      }
+
+      login(token, userEmail, filteredUser[0].userId);
+
       toast({
         title: "Login bem‑sucedido!",
         description:`Bem‑vindo de volta, ${userEmail}!`,
         variant: "default",
       });
   
-      // ❺ Redirect
-      navigate("/dashboard");
+      navigate("/donations");
     } catch (err: unknown) {
       const error =
         err instanceof Error ? err : new Error("Erro desconhecido no login.");

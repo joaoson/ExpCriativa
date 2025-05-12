@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
+import { useAuth } from './auth-context';
 
 type NavbarProps = {
   labels: LabelProp[],
@@ -29,6 +30,8 @@ const Navbar = ({
 } : NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { logout } = useAuth();
+  
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,9 +77,9 @@ const Navbar = ({
           </a>
 
           <nav className="hidden md:flex items-center space-x-8">
-            {labels.map(i => 
+            {labels.map((i, index) => 
               (
-                <NavLink href={i.href} isScrolled={isScrolled}>{i.text}</NavLink>
+                <NavLink key={index} href={i.href} isScrolled={isScrolled}>{i.text}</NavLink>
               )
             )}
           </nav>
@@ -91,17 +94,17 @@ const Navbar = ({
                     <DropdownMenuContent className="w-34">
                       <DropdownMenuLabel>John Doe</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <Link to={"/organization"}>
+                      <Link to={"/profile"}>
                         <DropdownMenuItem>
                           View Profile
                         </DropdownMenuItem>
                       </Link>
-                      <Link to={"/donationHistory"}>
+                      <Link to={"/donations"}>
                         <DropdownMenuItem>
                           Donation History
                         </DropdownMenuItem>
                       </Link>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={logout}>
                         Logout
                       </DropdownMenuItem>
                     </DropdownMenuContent>
