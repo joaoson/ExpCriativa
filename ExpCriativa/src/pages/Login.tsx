@@ -69,7 +69,7 @@ const Login = () => {
         throw new Error("Non existent user.")
       }
 
-      login(token, userEmail, filteredUser[0].userId);
+      login(token, userEmail, filteredUser[0].id, filteredUser[0].role);
 
       toast({
         title: "Login bem‑sucedido!",

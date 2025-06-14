@@ -1,10 +1,5 @@
 export interface UserResponse {
-    userId?: number,
-    donorId?: number,
-    userImageUrl?: string,
+    id?: number,
     userEmail: string,
-    userPassword: string,
-    userStatus: string,
-    userBirthDate: Date,
-    userPhone: string
+    role: number,
 }
