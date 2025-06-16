@@ -1,127 +1,172 @@
-
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  Bell, 
-  Search, 
-  LayoutDashboard, 
-  ChartBarBig, 
-  Settings, 
-  Users, 
-  BadgeDollarSign, 
-  FileText,
-  HandHeart, 
-  MenuIcon,
-  X,
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  Bell,
+  Sun,
+  Moon,
   ChevronDown,
   User,
   LogOut,
-  Moon,
-  Sun,
-  HelpCircle,
-  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
-// Simulated auth context - replace with your actual implementation
+/* ------------------------------------------------------------------ */
+/* Fake auth – troque pela real                                       */
+/* ------------------------------------------------------------------ */
 const useAuth = () => ({
-  logout: () => console.log('Logging out...'),
-  user: { name: 'Charity Organization', role: 'Admin', avatar: 'CO' }
+  logout: () => console.log('Logging out…'),
+  user: { name: 'Charity Organization', role: 'Admin', avatar: 'CO' },
 });
 
-// Enhanced Header Component
-const Header = () => {
-  const [searchValue, setSearchValue] = useState('');
+/* ------------------------------------------------------------------ */
+/* Header                                                              */
+/* ------------------------------------------------------------------ */
+const Header: React.FC = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+
+  /* Tema */
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem('theme') === 'dark' || prefersDark,
+  );
+
   const { logout, user } = useAuth();
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    console.log('Searching for:', searchValue);
+  /* Rota atual */
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isPt = location.pathname.endsWith('Pt');
+
+  /* Textos dinâmicos */
+  const t = {
+    headerTitle: isPt
+      ? 'Página de Administração da Organização'
+      : 'Organization Administration Page',
+    langButton: isPt ? 'ENG' : 'PT',
+    langTitle: isPt ? 'English version' : 'Versão em Português',
+    visitOrg: isPt ? 'Visitar página da organização' : 'Visit Organization Page',
+    signOut: isPt ? 'Sair' : 'Sign Out',
   };
 
+  const toggleLangRoute = () => {
+    const path = location.pathname;
+    const newPath = isPt ? path.slice(0, -2) : `${path}Pt`;
+    navigate(`${newPath}${location.search}${location.hash}`);
+  };
+
+  /* Dark-mode sync */
+  useEffect(() => {
+    const root = document.documentElement;
+    if (darkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
+
+  /* Fecha dropdown clicando fora */
+  useEffect(() => {
+    const close = () => setShowProfileMenu(false);
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, []);
+
   return (
-    <header className="bg-white/95 backdrop-blur-sm h-16 border-b border-gray-200/50 flex items-center justify-between px-6 sticky top-0 z-50 shadow-sm">
-      <div className="flex items-center gap-4 w-full">
-        {/* Logo/Title */}
-        <div className="flex items-center gap-3">
- 
-          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hidden sm:block">
-            Organization Administration Page
-          </h1>
-        </div>
-        
-        {/* Search and Actions */}
-        <div className="flex-1 flex justify-end items-center gap-3">
-          {/* Search Bar */}
-          
-          
-          {/* Quick Actions */}
-          <div className="flex items-center gap-2">
-            {/* Dark Mode Toggle */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setDarkMode(!darkMode)}
-              className="relative hover:bg-gray-100 transition-colors"
-            >
-              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </Button>
+    <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-gray-200/50 bg-white/95 px-6 shadow-sm backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-900/80">
+      <h1 className="hidden text-xl font-bold text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text sm:block">
+        {t.headerTitle}
+      </h1>
 
-           
+      <div className="flex items-center gap-2 ml-auto">
+        {/* Botão PT/ENG */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleLangRoute}
+          className="px-3"
+          title={t.langTitle}
+        >
+          {t.langButton}
+        </Button>
 
-        
-            {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative hover:bg-gray-100 transition-colors">
-              <Bell size={18} />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
-            </Button>
+        {/* Dark-mode */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            setDarkMode((prev) => !prev);
+          }}
+          className="hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+        </Button>
 
-            {/* Profile Dropdown */}
-            <div className="relative">
-              <Button 
-                variant="ghost" 
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2 px-3 hover:bg-gray-100 transition-colors"
-              >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
-                  {user.avatar}
-                </div>
-                <ChevronDown size={16} className={`transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
-              </Button>
+        {/* Notificações */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <Bell size={18} />
+          <span className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full border-2 border-white bg-red-500 dark:border-gray-900" />
+        </Button>
 
-              {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="font-semibold text-gray-800">{user.name}</p>
-                    <p className="text-sm text-gray-600">{user.role}</p>
-                  </div>
-                  <a
-  href={`/organization/${localStorage.getItem("userId")}`}
->
-                  <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    <User size={16} />
-                    Visit Organization Page
-                  </button>
-                  </a>
-                  <button 
-                    onClick={logout}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <LogOut size={16} />
-                    Sign Out
-                  </button>
-                </div>
-              )}
+        {/* Dropdown de perfil */}
+        <div
+          className="relative"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <Button
+            variant="ghost"
+            onClick={() => setShowProfileMenu((v) => !v)}
+            className="flex items-center gap-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white">
+              {user.avatar}
             </div>
-          </div>
+            <ChevronDown
+              size={16}
+              className={`transition-transform ${showProfileMenu ? 'rotate-180' : ''}`}
+            />
+          </Button>
+
+          {showProfileMenu && (
+            <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-white py-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+              <div className="border-b px-4 py-3 dark:border-gray-700">
+                <p className="font-semibold text-gray-800 dark:text-gray-100">
+                  {user.name}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {user.role}
+                </p>
+              </div>
+
+              <a
+                href={`/organization/${localStorage.getItem('userId')}`}
+                className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
+              >
+                <User size={16} />
+                {t.visitOrg}
+              </a>
+
+              <button
+                onClick={logout}
+                className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40"
+              >
+                <LogOut size={16} />
+                {t.signOut}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
   );
 };
-
 
 export default Header;
