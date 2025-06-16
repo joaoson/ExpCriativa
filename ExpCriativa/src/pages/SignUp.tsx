@@ -144,11 +144,23 @@ const SignUp = () => {
         variant: "default",
       });  
     } catch (error: any) {
+      let description = "Something went wrong. Please try again.";
+
+      // Portuguese or English variants you expect from the API
+      if (
+        error.message?.toLowerCase().includes("e-mail")
+      ) {
+        description = "E-mail already in use. Please try again.";
+      }
+
       toast({
         title: "Signup failed",
-        description: error.message,
+        description,
         variant: "destructive",
       });
+
+      console.log(error)
+      console.log(error.message)
     }
   };
 
@@ -197,11 +209,21 @@ const SignUp = () => {
       
       navigate("/dashboard")
     } catch (error) {
+      let description = "Something went wrong. Please try again.";
+
+      // Portuguese or English variants you expect from the API
+      if (
+        error.message?.toLowerCase().includes("e-mail")
+      ) {
+        description = "E-mail already in use. Please try again.";
+      }
+
       toast({
         title: "Signup failed",
-        description: error.message,
+        description,
         variant: "destructive",
       });
+      console.log(error)
     }
   };
 

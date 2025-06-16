@@ -24,22 +24,36 @@ import {
   OrgProfile,
 } from '@/service/organization-settings-service';
 
-// Interfaces
+const API_BASE_URL = 'https://localhost:7142';
+
+interface DonationActivity {
+  donationId: number;
+  donationMethod: string;
+  donationDate: string;
+  donationAmount: number;
+  status: number;
+  donationIsAnonymous: boolean;
+  donationDonorMessage: string;
+  donorId: number;
+  orgId: number;
+  donorName: string;
+  orgName: string;
+  donorImageUrl: string;
+  orgImageUrl: string;
+}
+
 interface Donor {
   donorId: number;
-  firstName: string;
-  lastName: string;
-  email: string;
+  userEmail: string;
+  name: string;
+  document?: string;
   phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
+  birthDate?: string;
+  imageUrl?: string;
   totalDonations: number;
+  averageDonation: number;
   donationCount: number;
   lastDonationDate: string;
-  firstDonationDate: string;
-  averageDonation: number;
   isRecurring: boolean;
 }
 
@@ -50,84 +64,150 @@ interface DonorFilters {
   sortOrder?: 'asc' | 'desc';
 }
 
-// Service function
-const fetchDonors = async (filters: DonorFilters = {}): Promise<Donor[]> => {
-  const token = localStorage.getItem('accessToken');
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const queryParams = new URLSearchParams();
-  if (filters.orgId) {
-    queryParams.append('orgId', String(filters.orgId));
-  }
-  if (filters.searchTerm) {
-    queryParams.append('search', filters.searchTerm);
-  }
-  if (filters.sortBy) {
-    queryParams.append('sortBy', filters.sortBy);
-  }
-  if (filters.sortOrder) {
-    queryParams.append('sortOrder', filters.sortOrder);
-  }
-
-  const queryString = queryParams.toString();
-  const API_BASE_URL = 'https://localhost:7142';
-  const requestUrl = `${API_BASE_URL}/api/Donors${queryString ? `?${queryString}` : ''}`;
-
-  try {
-    const response = await fetch(requestUrl, {
-      method: 'GET',
-      headers: headers,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(`API Error: ${response.status} ${errorData}`);
-    }
-
-    const donors = await response.json();
-    
-    // Process and calculate additional fields
-    return donors.map((donor: any) => ({
-      donorId: donor.donorId,
-      firstName: donor.firstName || '',
-      lastName: donor.lastName || '',
-      email: donor.email || '',
-      phone: donor.phone,
-      address: donor.address,
-      city: donor.city,
-      state: donor.state,
-      zipCode: donor.zipCode,
-      totalDonations: donor.totalDonations || 0,
-      donationCount: donor.donationCount || 0,
-      lastDonationDate: donor.lastDonationDate || '',
-      firstDonationDate: donor.firstDonationDate || '',
-      averageDonation: donor.donationCount > 0 ? (donor.totalDonations / donor.donationCount) : 0,
-      isRecurring: donor.isRecurring || false,
-    }));
-  } catch (error) {
-    console.error('Error fetching donors:', error);
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error('An unknown error occurred while fetching donors.');
-  }
-};
-
 const Donors = () => {
   const [orgProfile, setOrgProfile] = useState<OrgProfile | null>(null);
-  const [donors, setDonors] = useState<Donor[]>([]);
-  const [filteredDonors, setFilteredDonors] = useState<Donor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'totalDonations' | 'lastDonation' | 'donationCount'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [donations, setDonations] = useState<DonationActivity[]>([]);
+  const [donors, setDonors] = useState<Donor[]>([]);
+
+  // Function to fetch donations and process donor data
+  const fetchRecentDonations = async () => {
+    const token = localStorage.getItem("accessToken");
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    try {
+      // Get current user's org ID from localStorage
+      const orgId = localStorage.getItem("userId");
+      console.log(orgId);
+      
+      const requestUrl = `${API_BASE_URL}/api/Donations`;
+
+      const response = await fetch(requestUrl, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`API Error: ${response.status} ${errorData}`);
+      }
+
+      const donationsData = await response.json() as DonationActivity[];
+      const orgIdStr = localStorage.getItem("userId");
+      console.log(orgIdStr);
+      console.log(donationsData);
+      
+      const donationsForOrg = orgIdStr
+        ? donationsData.filter((d) => String(d.orgId) === String(orgIdStr))
+        : donationsData;
+
+      const uniqueDonorIds = [
+        ...new Set(
+          donationsForOrg
+            .map((d) => d.donorId)
+            .filter((id): id is number => id != null)
+        ),
+      ];
+
+      const donorRequests = uniqueDonorIds.map(async (donorId) => {
+        const resp = await fetch(`${API_BASE_URL}/api/Users/${donorId}`, { headers });
+
+        if (!resp.ok) {
+          console.error(
+            `Couldn't fetch donor ${donorId}:`,
+            resp.status,
+            await resp.text()
+          );
+          return { 
+            donorId, 
+            userEmail: "unknown@email.com",
+            name: "Unknown Donor",
+            totalDonations: 0,
+            averageDonation: 0,
+            donationCount: 0,
+            lastDonationDate: "",
+            isRecurring: false
+          };
+        }
+
+        type UserApiResponse = { 
+          id: number;
+          userEmail: string;
+          role: number;
+          userDateCreated: string;
+          donorProfile?: { 
+            userId: number; 
+            name: string;
+            document?: string;
+            phone?: string;
+            birthDate?: string;
+            imageUrl?: string;
+          } 
+        };
+
+        const data: UserApiResponse = await resp.json();
+        const profile = data.donorProfile;
+        
+        // Calculate donor statistics from donations
+        const donorDonations = donationsForOrg.filter(d => d.donorId === donorId);
+        const totalDonations = donorDonations.reduce((sum, d) => sum + d.donationAmount, 0);
+        const donationCount = donorDonations.length;
+        const averageDonation = donationCount > 0 ? totalDonations / donationCount : 0;
+        const lastDonationDate = donorDonations.length > 0 
+          ? donorDonations.sort((a, b) => new Date(b.donationDate).getTime() - new Date(a.donationDate).getTime())[0].donationDate
+          : "";
+        const isRecurring = donationCount > 1;
+
+        return {
+          donorId,
+          userEmail: data.userEmail || "unknown@email.com",
+          name: profile?.name || "Unknown Donor",
+          document: profile?.document,
+          phone: profile?.phone,
+          birthDate: profile?.birthDate,
+          imageUrl: profile?.imageUrl,
+          totalDonations,
+          averageDonation,
+          donationCount,
+          lastDonationDate,
+          isRecurring
+        };
+      });
+
+      const donorsData = await Promise.all(donorRequests);
+      setDonors(donorsData);
+
+      const donorMap = new Map<number, string>(
+        donorsData.map(({ donorId, name }) => [donorId, name])
+      );
+
+      // Enrich donations with donorName
+      const decorated = donationsForOrg.map((don) => ({
+        ...don,
+        donorName: donorMap.get(don.donorId) ?? "Unknown donor",
+      }));
+
+      // Sort by donation date (most recent first) and take the first 10
+      const sortedDonations = decorated
+        .sort((a, b) => new Date(b.donationDate).getTime() - new Date(a.donationDate).getTime())
+        .slice(0, 10);
+      
+      setDonations(sortedDonations);
+    } catch (err) {
+      console.error('Error fetching recent donations:', err);
+      throw err;
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -135,18 +215,13 @@ const Donors = () => {
         setLoading(true);
         setError(null);
 
-        const [profileData, donorsData] = await Promise.all([
+        // Load both org profile and donations data
+        const [profileData] = await Promise.all([
           fetchCurrentOrgProfile(),
-          fetchDonors({ 
-            orgId: localStorage.getItem("userId"),
-            sortBy,
-            sortOrder
-          })
+          fetchRecentDonations()
         ]);
 
         setOrgProfile(profileData);
-        setDonors(donorsData);
-        setFilteredDonors(donorsData);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
         setError(errorMessage);
@@ -157,16 +232,52 @@ const Donors = () => {
     };
 
     loadData();
-  }, [sortBy, sortOrder]);
+  }, []);
 
-  // Filter donors based on search term
-  useEffect(() => {
-    const filtered = donors.filter(donor => 
-      `${donor.firstName} ${donor.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      donor.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredDonors(filtered);
-  }, [searchTerm, donors]);
+  // Calculate summary statistics
+  const totalDonors = donors.length;
+  const totalDonationsAmount = donors.reduce((sum, donor) => sum + donor.totalDonations, 0);
+  const averageDonationPerDonor = totalDonors > 0 ? totalDonationsAmount / totalDonors : 0;
+  const recurringDonors = donors.filter(donor => donor.isRecurring).length;
+
+  // Filter and sort donors
+  const filteredDonors = donors
+    .filter(donor => {
+      if (!searchTerm) return true;
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        donor.name.toLowerCase().includes(searchLower) ||
+        donor.userEmail.toLowerCase().includes(searchLower)
+      );
+    })
+    .sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (sortBy) {
+
+        case 'totalDonations':
+          aValue = a.totalDonations;
+          bValue = b.totalDonations;
+          break;
+        case 'donationCount':
+          aValue = a.donationCount;
+          bValue = b.donationCount;
+          break;
+        case 'lastDonation':
+          aValue = new Date(a.lastDonationDate).getTime();
+          bValue = new Date(b.lastDonationDate).getTime();
+          break;
+        default:
+          aValue = a.name;
+          bValue = b.name;
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -184,12 +295,6 @@ const Donors = () => {
       day: 'numeric'
     });
   };
-
-  // Calculate summary stats
-  const totalDonors = filteredDonors.length;
-  const totalDonationsAmount = filteredDonors.reduce((sum, donor) => sum + donor.totalDonations, 0);
-  const averageDonationPerDonor = totalDonors > 0 ? totalDonationsAmount / totalDonors : 0;
-  const recurringDonors = filteredDonors.filter(donor => donor.isRecurring).length;
 
   if (loading) {
     return (
@@ -342,7 +447,7 @@ const Donors = () => {
                     <tr className="border-b">
                       <th className="text-left p-3 font-medium">Donor</th>
                       <th className="text-left p-3 font-medium">Contact</th>
-                      <th className="text-left p-3 font-medium">Location</th>
+                      <th className="text-left p-3 font-medium">Document</th>
                       <th className="text-left p-3 font-medium">Total Donated</th>
                       <th className="text-left p-3 font-medium">Donations</th>
                       <th className="text-left p-3 font-medium">Last Donation</th>
@@ -356,12 +461,20 @@ const Donors = () => {
                         <td className="p-3">
                           <div className="flex items-center">
                             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                              <span className="text-sm font-medium text-blue-600">
-                                {donor.firstName.charAt(0)}{donor.lastName.charAt(0)}
-                              </span>
+                              {donor.imageUrl ? (
+                                <img 
+                                  src={donor.imageUrl} 
+                                  alt={donor.name}
+                                  className="w-8 h-8 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-sm font-medium text-blue-600">
+                                  {donor.name.charAt(0)}
+                                </span>
+                              )}
                             </div>
                             <div>
-                              <p className="font-medium">{donor.firstName} {donor.lastName}</p>
+                              <p className="font-medium">{donor.name}</p>
                               <p className="text-sm text-gray-500">ID: {donor.donorId}</p>
                             </div>
                           </div>
@@ -370,7 +483,7 @@ const Donors = () => {
                           <div className="space-y-1">
                             <div className="flex items-center text-sm">
                               <Mail className="h-3 w-3 mr-1 text-gray-400" />
-                              <span className="truncate max-w-[150px]">{donor.email}</span>
+                              <span className="truncate max-w-[150px]">{donor.userEmail}</span>
                             </div>
                             {donor.phone && (
                               <div className="flex items-center text-sm text-gray-500">
@@ -382,10 +495,9 @@ const Donors = () => {
                         </td>
                         <td className="p-3">
                           <div className="text-sm">
-                            {donor.city || donor.state ? (
+                            {donor.document ? (
                               <div className="flex items-center">
-                                <MapPin className="h-3 w-3 mr-1 text-gray-400" />
-                                <span>{donor.city}{donor.city && donor.state ? ', ' : ''}{donor.state}</span>
+                                <span>Doc: {donor.document}</span>
                               </div>
                             ) : (
                               <span className="text-gray-400">—</span>
@@ -405,7 +517,7 @@ const Donors = () => {
                         <td className="p-3">
                           <div className="flex items-center text-sm">
                             <Calendar className="h-3 w-3 mr-1 text-gray-400" />
-                            <span>{formatDate(donor.lastDonationDate)}</span>
+                            <span>{donor.lastDonationDate}</span>
                           </div>
                         </td>
                         <td className="p-3">

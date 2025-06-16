@@ -97,7 +97,7 @@ const RecentActivity = () => {
   const [donations, setDonations] = useState<DonationActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  console.log(donations)
   useEffect(() => {
     const fetchRecentDonations = async () => {
       const token = getToken();
@@ -112,14 +112,14 @@ const RecentActivity = () => {
       try {
         // Get current user's org ID from localStorage
         const orgId = localStorage.getItem("userId");
+        console.log(orgId)
         const queryParams = new URLSearchParams();
         
         if (orgId) {
           queryParams.append('orgId', orgId);
         }
         
-        const queryString = queryParams.toString();
-        const requestUrl = `${API_BASE_URL}/api/Donations${queryString ? `?${queryString}` : ''}`;
+        const requestUrl = `${API_BASE_URL}/api/Donations`;
 
         const response = await fetch(requestUrl, {
           method: 'GET',
@@ -132,9 +132,52 @@ const RecentActivity = () => {
         }
 
         const donationsData = await response.json() as DonationActivity[];
-        
+        const orgIdStr = localStorage.getItem("userId");
+        console.log(orgIdStr)  
+        console.log(donationsData)
+        const donationsForOrg = orgIdStr
+        ? donationsData.filter((d) => String(d.orgId) === String(orgIdStr))
+        : donationsData;
+
+        const uniqueDonorIds = [
+          ...new Set(
+            donationsForOrg
+              .map((d) => d.donorId)
+              .filter((id): id is number => id != null)
+          ),
+        ];
+
+        const donorRequests = uniqueDonorIds.map(async (donorId) => {
+          const resp = await fetch(`${API_BASE_URL}/api/Users/${donorId}`, { headers });
+
+          if (!resp.ok) {
+            console.error(
+              `Couldn’t fetch donor ${donorId}:`,
+              resp.status,
+              await resp.text()
+            );
+            return { donorId, name: "Unknown donor" };
+          }
+
+          type UserApiResponse = { donorProfile?: { userId: number; name: string } };
+
+          const data: UserApiResponse = await resp.json();
+          const name = data.donorProfile?.name ?? "Unnamed donor";
+
+          return { donorId, name };
+        });
+         const donors = await Promise.all(donorRequests);
+        const donorMap = new Map<number, string>(
+          donors.map(({ donorId, name }) => [donorId, name])
+        );
+
+        /* 4️⃣  Enrich donations with donorName */
+        const decorated = donationsForOrg.map((don) => ({
+          ...don,
+          donorName: donorMap.get(don.donorId) ?? "Unknown donor",
+        }));
         // Sort by donation date (most recent first) and take the first 10
-        const sortedDonations = donationsData
+        const sortedDonations = decorated
           .sort((a, b) => new Date(b.donationDate).getTime() - new Date(a.donationDate).getTime())
           .slice(0, 10);
         
@@ -214,8 +257,10 @@ const RecentActivity = () => {
                   alt={donation.donationIsAnonymous ? "Anonymous" : donation.donorName} 
                 />
                 <AvatarFallback className="bg-lumen-100 text-lumen-700">
-                  {donation.donationIsAnonymous ? "A" : donation.donorName}
-                </AvatarFallback>
+                {donation.donationIsAnonymous
+                  ? "A"
+                  : (donation.donorName?.charAt(0).toUpperCase() ?? "?")}               
+                  </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1">
                 <p className="text-sm font-medium leading-none">
@@ -228,7 +273,7 @@ const RecentActivity = () => {
                   </span>
                 </p>
                 <p className="flex items-center text-xs text-gray-500">
-                  {formatTimeAgo(donation.donationDate)}
+                  {donation.donationDate}
                 </p>
               </div>
               <Badge variant={getBadgeVariant(donation.donationMethod)}>

@@ -14,6 +14,7 @@ import { AuthProvider } from './components/auth-context';
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Dashboard from "./pages/Dashboard";
+import DashboardPt from "./pages/DashboardPt";
 import Test from "./pages/Test";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -23,6 +24,11 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import DonationHistory from "./pages/DonationHistory";
 import ListedOrganizations from "./pages/ListedOrganizations";
 import Donors from "./components/Donors";
+import Donations from "./components/Donations";
+import DonorsPt from "./components/DonorsPt";
+import DonationsPt from "./components/DonationsPt";
+import AnalyticsPt from "./pages/AnalyticsPt";
+import SettingsPt from "./pages/SettingsPt";
 
 
 
@@ -52,18 +58,24 @@ const App = () => {
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard/>} />
+              <Route path="/dashboardPt" element={<DashboardPt/>} />
               <Route path="/donations" element={<DonationHistory />} />
+              <Route path="/donationsDash" element={<Donations />} />
               <Route path="/organization/:id" element={<Organization />} />
               <Route path="/search" element={<ListedOrganizations />} />
               <Route path="/donors" element={<Donors />} />
+              <Route path="/donorsPt" element={<DonorsPt />} />
+              <Route path="/donationsDashPt" element={<DonationsPt />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/settingsPt" element={<SettingsPt />} />
+
 
             {/* Add other protected routes here */}
             </Route>
             <Route path="/" element={<Index />} />
               <Route path="/analytics" element={<Analytics />} />
-              <Route path="/donors" element={<NotFound />} />
+              <Route path="/analyticsPt" element={<AnalyticsPt />} />
               <Route path="/reports" element={<NotFound />} />
-              <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/policy" element={<PrivacyPolicy />} />
