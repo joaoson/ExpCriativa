@@ -23,6 +23,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import DonationHistory from "./pages/DonationHistory";
 import ProfilePerson from "./pages/ProfilePerson";
 import ListedOrganizations from "./pages/ListedOrganizations";
+import Donors from "./components/Donors";
 
 
 
@@ -56,6 +57,7 @@ const App = () => {
               <Route path="/profile" element={<ProfilePerson />} />
               <Route path="/organization/:id" element={<Organization />} />
               <Route path="/search" element={<ListedOrganizations />} />
+              <Route path="/donors" element={<Donors />} />
 
             {/* Add other protected routes here */}
             </Route>
