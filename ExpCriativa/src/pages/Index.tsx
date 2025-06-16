@@ -8,11 +8,11 @@ import Footer from '@/components/Footer';
 import { BookOpen, Star, GraduationCap, Award, ArrowRight } from 'lucide-react';
 
 const Index = () => {
-  const labels : LabelProp[] = [
-    {href: "#about", text: "About"},
-    {href: "#impact", text: "Our Impact"},
-    {href: "#stories", text: "Stories"},
-  ]
+  const labels: LabelProp[] = [
+      { href: "#about", text: "About" },
+      { href: "#impact", text: "Our Impact" },
+      { href: "#stories", text: "Stories" },
+    ];
 
   useEffect(() => {
     // Smooth scrolling for anchor links

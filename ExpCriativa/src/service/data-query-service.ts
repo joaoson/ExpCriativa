@@ -1,7 +1,7 @@
 // data-query-service.ts
 
 // Replace with your actual API base URL
-const API_BASE_URL: string = 'http://localhost:5107'; // Or your deployed API URL
+const API_BASE_URL: string = 'https://localhost:7142'; // Or your deployed API URL
 
 // --- Interfaces based on swagger.json and component usage ---
 
@@ -13,29 +13,27 @@ interface OrgDto {
   orgFoundationDate?: string; // Assuming date-time string
   adminName?: string | null;
   adminPhone?: string | null;
-  // Add any other fields from OrgDto if needed elsewhere
 }
 
 interface DonationDto {
   donationId: number;
   donationMethod?: string | null;
-  donationDate: string; // Assuming date-time string
+  donationDate: string;
   donationAmount: number;
   donationStatus?: string | null;
   donationIsAnonymous?: boolean;
   donationDonorMessage?: string | null;
-  donorId: number; // Assuming non-nullable as it's key for donorCount
-  orgId: number;   // Assuming non-nullable
-  // Add any other fields from DonationDto if needed elsewhere
+  donorId: number; 
+  orgId: number;   
+  orgName: string;
+  donorName: string;
 }
 
-// Interface for the data structure expected by the component for organizations
 export interface Organization {
   id: number;
   name: string;
 }
 
-// Interface for the filters passed to fetchDonationStats
 export interface DonationStatsFilters {
   orgId?: string | number | null;
   startDate?: string | null;
@@ -44,7 +42,6 @@ export interface DonationStatsFilters {
   // donationStatus?: string | null;
 }
 
-// Interface for the return type of fetchDonationStats
 export interface DonationStats {
   totalDonations: number;
   donorCount: number;
@@ -118,9 +115,7 @@ export const fetchDonationStats = async (filters: DonationStatsFilters = {}): Pr
   }
 
   const queryParams = new URLSearchParams();
-  if (filters.orgId) {
-    queryParams.append('orgId', String(filters.orgId));
-  }
+
   if (filters.startDate) {
     queryParams.append('startDate', filters.startDate);
   }
@@ -146,11 +141,15 @@ export const fetchDonationStats = async (filters: DonationStatsFilters = {}): Pr
     }
 
     const donations = (await response.json()) as DonationDto[];
+    const donationsForOrg = filters.orgId
+        ? donations.filter((d) => String(d.orgId) === String(filters.orgId))
+        : donations;
+    console.log(donationsForOrg)
 
     let totalDonations = 0;
     const donorIds = new Set<number>();
 
-    donations.forEach((donation: DonationDto) => {
+    donationsForOrg.forEach((donation: DonationDto) => {
       if (typeof donation.donationAmount === 'number') {
         totalDonations += donation.donationAmount;
       }
@@ -161,7 +160,7 @@ export const fetchDonationStats = async (filters: DonationStatsFilters = {}): Pr
     });
 
     const donorCount = donorIds.size;
-    const avgDonation = donorCount > 0 ? totalDonations / donorCount : 0;
+    const avgDonation = donorCount > 0 ? totalDonations / donationsForOrg.length : 0;
 
     return {
       totalDonations: totalDonations,
@@ -181,3 +180,57 @@ export interface DonationStats {
   donorCount: number;       // quantidade de doadores únicos
   avgDonation: number;      // média doada por doador
 }
+export interface DonationFullResult{
+  donations: DonationDto[];   // full objects returned
+}
+
+export const fetchDonationfull = async (
+  filters: DonationStatsFilters = {}
+): Promise<DonationFullResult> => {
+  const token = getToken();
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+
+  const requestUrl = `${API_BASE_URL}/api/Donations`;
+
+  try {
+    /* 1️⃣ fetch */
+    const resp = await fetch(requestUrl, { headers });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`API Error: ${resp.status} ${errText}`);
+    }
+
+    /* 2️⃣ raw list straight from server */
+    const donations = (await resp.json()) as DonationDto[];
+
+    /* 3️⃣ optional client-side org filter safeguard */
+    const donationsForOrg =
+      filters.orgId != null
+        ? donations.filter((d) => String(d.orgId) === String(filters.orgId))
+        : donations;
+
+    /* 4️⃣ compute stats */
+    let totalDonations = 0;
+    const donorIds = new Set<number>();
+
+    donationsForOrg.forEach((d) => {
+      totalDonations += d.donationAmount ?? 0;
+      if (typeof d.donorId === "number") donorIds.add(d.donorId);
+    });
+
+
+
+    /* 5️⃣ return BOTH stats + full objects */
+    return {
+      donations: donationsForOrg
+    };
+  } catch (err) {
+    console.error("Error fetching donation statistics:", err);
+    if (err instanceof Error) throw err;
+    throw new Error(
+      "An unknown error occurred while fetching donation statistics."
+    );
+  }
+};

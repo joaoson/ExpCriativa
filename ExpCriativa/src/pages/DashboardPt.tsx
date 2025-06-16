@@ -1,3 +1,4 @@
+// DashboardPt.tsx
 import React, { useEffect, useState } from 'react';
 import StatCard from '@/components/dashboard/StatCard';
 import OverviewChart from '@/components/dashboard/OverviewChart';
@@ -19,8 +20,11 @@ import {
   fetchCurrentOrgProfile,
   OrgProfile,
 } from '@/service/organization-settings-service';
+import RecentActivityPt from '@/components/dashboard/RecentActivityPt';
+import OverviewChartPt from '@/components/dashboard/OverviewChartPt';
+import SidebarPt from '@/components/layout/SidebarPt';
 
-const Dashboard = () => {
+const DashboardPt: React.FC = () => {
   const [orgProfile, setOrgProfile] = useState<OrgProfile | null>(null);
   const [stats, setStats] = useState<DonationStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,79 +56,80 @@ const Dashboard = () => {
     loadData();
   }, []);
 
-  if (loading) return <p>Loading…</p>;
-  if (error) return <p style={{ color: 'red' }}>Error: {error}</p>;
+  if (loading) return <p>Carregando…</p>;
+  if (error)   return <p style={{ color: 'red' }}>Erro: {error}</p>;
 
-  const currency = new Intl.NumberFormat('en-US', {
+  // Formatação para Brasil (R$ e separador de milhar “.”)
+  const moeda = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'BRL',
     maximumFractionDigits: 0,
   });
 
-  /** ─────────────────────────────────────────────────────────────────── **/
+  /* ───────────────────────────────────────────────────────────────────── */
 
   return (
-    /* ✦ dark-mode additions — bg + text colours transition cleanly */
     <div className="flex h-screen overflow-hidden bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors">
-      {/* Sidebar uses its own colours; leave untouched */}
-      <Sidebar
+      <SidebarPt
         organizationName={
-          orgProfile?.orgName ? `${orgProfile.orgName}` : 'Charity'
+          orgProfile?.orgName ? `${orgProfile.orgName}` : 'Instituição'
         }
       />
 
       <div className="flex-1 overflow-y-auto">
-        {/* Header already has dark-aware hover states; nothing else to do */}
         <Header />
 
-        {/* ✦ container background shade for both modes */}
         <div className="flex flex-col space-y-6 p-6 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm transition-colors">
-          {/* Title + subtitle */}
+          {/* Título + subtítulo */}
           <div className="flex flex-col">
             <h1 className="text-2xl font-bold">
               {orgProfile?.orgName
-                ? `${orgProfile.orgName} Dashboard`
-                : 'Dashboard'}
+                ? `Painel • ${orgProfile.orgName}`
+                : 'Painel de Doações'}
             </h1>
             <p className="text-muted-foreground dark:text-gray-400">
-              Welcome to your organization's donation management portal
+              Bem-vindo ao portal de gestão de doações da sua organização
             </p>
           </div>
 
-          {/* Stat cards */}
+          {/* Cartões de estatísticas */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              title="Total Donations"
-              value={currency.format(stats?.totalDonations ?? 0)}
+              title="Total de Doações"
+              value={moeda.format(stats?.totalDonations ?? 0)}
               icon={<BadgeDollarSign size={20} />}
             />
             <StatCard
-              title="Total Donors"
-              value={stats?.donorCount?.toLocaleString() ?? '—'}
+              title="Total de Doadores"
+              value={
+                stats?.donorCount !== undefined
+                  ? stats.donorCount.toLocaleString('pt-BR')
+                  : '—'
+              }
               icon={<Users size={20} />}
             />
             <StatCard
-              title="Monthly Growth"
-              value="8.7%"
+              title="Crescimento Mensal"
+              value="8,7%"
               icon={<ChartBarBig size={20} />}
             />
             <StatCard
-              title="Avg. Donation"
-              value={currency.format(stats?.avgDonation ?? 0)}
+              title="Doação Média"
+              value={moeda.format(stats?.avgDonation ?? 0)}
               icon={<HandHeart size={20} />}
             />
           </div>
 
-          {/* Charts */}
+          {/* Gráficos */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-            <OverviewChart />
-            <RecentActivity />
+            <OverviewChartPt />
+            <RecentActivityPt />
           </div>
 
-          {/* Donation-method pie chart */}
+          {/* Pizza de métodos de pagamento */}
           <Card className="bg-white dark:bg-gray-800 transition-colors">
             <CardHeader>
-              <CardTitle>Donation Method Distribution</CardTitle>
+              <CardTitle>Distribuição por Método de Doação</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="min-h-[220px]">
@@ -138,4 +143,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardPt;

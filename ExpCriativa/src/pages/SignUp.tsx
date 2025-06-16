@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Briefcase, CalendarIcon, Heart, Lock, Mail, MapPin, User } from 'lucide-react';
+import { ArrowLeft, Briefcase, CalendarIcon, Globe, Heart, Lock, Mail, MapPin, RectangleEllipsis, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AnimatedIcon from '@/components/AnimatedIcon';
 import { format, differenceInYears } from 'date-fns';
@@ -21,7 +21,6 @@ import {
 import { validateCNPJ, validateCPF, phoneValidation } from '@/lib/utils';
 import { useAuth } from '@/components/auth-context';
 import { UserResponse } from '@/models/UserResponse';
-
 
 // Signup Schema
 const personSchema = z.object({
@@ -60,11 +59,22 @@ const ongSchema = z.object({
     .refine(validateCNPJ, { message: "Invalid CNPJ" }),
   address: z.string().min(5, { message: "Address is required" }),
   admin: z.string().min(2, { message: "Administrator name must be at least 2 characters" }),
+  description: z.string().min(20, { message: "Description must be at least 20 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   phone: phoneValidation,
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string().min(6, { message: "Please confirm your password" }),
-}).refine((data) => data.password === data.confirmPassword, {
+  websiteUrl: z.string()
+  .optional()
+  .refine((val) => {
+    if (!val || val.trim() === '') return true;
+    try {
+      new URL(val);
+      return true;
+    } catch {
+      return false;
+    }
+  }, { message: "Please enter a valid URL (e.g https://yoursite.com) or leave empty" })}).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 }).transform((data) => {
@@ -99,22 +109,18 @@ const SignUp = () => {
 
   async function onPersonSubmit (values: z.infer<typeof personSchema>) {
     try {
-      const body = {
-        UserEmail: values.email,
-        UserPassword: values.password,
-        UserStatus: "Active",
-        UserBirthdate: values.dateOfBirth.toISOString(),
-        UserPhone: values.phone.phoneNumber,
-        DonorDocument: values.cpf,
-        DonorLocation: "Curitiba"
-      }
+      const formData = new FormData();
+
+      formData.append('UserEmail', values.email);
+      formData.append('UserPassword', values.password);
+      formData.append('Name', values.name);
+      formData.append('Document', values.cpf);
+      formData.append('Phone', values.phone.phoneNumber);
+      formData.append('Birthdate', values.dateOfBirth.toISOString());
       
-      const response = await fetch('https://localhost:7142/api/Users/create-with-donor', {
+      const response = await fetch('https://localhost:7142/api/Users/register/donor', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body),
+        body: formData,
       });
   
       if (!response.ok) {
@@ -126,7 +132,9 @@ const SignUp = () => {
       const token = await getJwtToken(values.email, values.password)
       const payload = parseJwt(token);
       const userEmail = payload.sub;
-      login(token, userEmail, data.userId);
+
+      // passar role do usuario
+      login(token, userEmail, data.id, data.role);
 
       navigate("/donations");
 
@@ -136,11 +144,23 @@ const SignUp = () => {
         variant: "default",
       });  
     } catch (error: any) {
+      let description = "Something went wrong. Please try again.";
+
+      // Portuguese or English variants you expect from the API
+      if (
+        error.message?.toLowerCase().includes("e-mail")
+      ) {
+        description = "E-mail already in use. Please try again.";
+      }
+
       toast({
         title: "Signup failed",
-        description: error.message,
+        description,
         variant: "destructive",
       });
+
+      console.log(error)
+      console.log(error.message)
     }
   };
 
@@ -149,36 +169,28 @@ const SignUp = () => {
     defaultValues: {
       name: "", cnpj: "", address: "", admin: "",
       email: "", password: "", confirmPassword: "",
-      phone: { countryCode: "BR", phoneNumber: "" }
+      phone: { countryCode: "BR", phoneNumber: "" },
+      description: "", websiteUrl: ""
     }
     });
-  // PRECISA ADICIONAR ALGUNS CAMPOS NO FRONT E NO BACK
-  // PRECISA DESAUTENTICAR O POST DE ORG E CRIAR JWT PARA FAZER O LOGIN COMO ORG
-  // AUTENTICAR APÓS AUTENTICAÇÃO
+ 
   async function onOngSubmit (values: z.infer<typeof ongSchema>) {
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aWFnb0BnbWFpbC5jb20iLCJqdGkiOiIxODk0NWMyMi00MmFjLTRkOTItYmQxNC1mYzJkMWZlNmQxYzgiLCJleHAiOjE3NDcwMTg3MTcsImlzcyI6Im1pbmhhLWFwbGljYWNhbyIsImF1ZCI6Im1ldXMtdXN1YXJpb3MifQ.LJEp6tpKSwO0L5LGnC_DmaiPnJRHBzAxoSRWWsMaE44"
-    
-      const body = {
-          OrgDescription: "Adicionar campo de descrição no Front",
-          OrgWebsiteUrl: "Adicionar campo de descrição no Front",
-          OrgLocation: values.address,
-          OrgFoundationDate: new Date().toISOString(),
-          // OrgFoundationName: values.name,
-          AdminName: values.admin,
-          AdminPhone: values.phone.phoneNumber
-          // OrgCnpj: values.cnpj //N ESTÁ NO BD AINDA
-          // OrgEmail: values.email //N ESTÁ NO BD AINDA
-          // OrgPassword: values.password //N ESTÁ NO BD AINDA
-        }
+      const formData = new FormData();
+      formData.append('UserEmail', values.email);
+      formData.append('UserPassword', values.password);
+      formData.append('OrgName', values.name);
+      formData.append('OrgPhone', values.phone.phoneNumber);
+      formData.append('OrgDocument', values.cnpj);
+      formData.append('OrgAddress', values.address);
+      formData.append('OrgDescription', values.description),
+      formData.append('OrgAdminName', values.admin);
+      formData.append('OrgWebsiteUrl', values.websiteUrl && values.websiteUrl.trim() !== '' ? values.websiteUrl : "");
+      formData.append('OrgAdminPhone', values.phone.phoneNumber);
         
-      const response = await fetch('https://localhost:7142/api/Orgs', {
+      const response = await fetch('https://localhost:7142/api/Users/register/org', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(body),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -187,20 +199,31 @@ const SignUp = () => {
           throw new Error(errorData.message || 'Something went wrong');
         }
 
-      // const token = await getJwtToken(values.email, values.password)
-      // const payload = parseJwt(token);
-      // const userEmail = payload.sub;
-      // login(token, userEmail);
-
-      navigate("/dashboard")
+      const data : UserResponse = await response.json()
+      const token = await getJwtToken(values.email, values.password)
+      const payload = parseJwt(token);
+      const userEmail = payload.sub;
+      login(token, userEmail, data.id, data.role);
 
       toast({ title: "Organization Registered", description: "Thanks for joining!", variant: "default" });
+      
+      navigate("/dashboard")
     } catch (error) {
+      let description = "Something went wrong. Please try again.";
+
+      // Portuguese or English variants you expect from the API
+      if (
+        error.message?.toLowerCase().includes("e-mail")
+      ) {
+        description = "E-mail already in use. Please try again.";
+      }
+
       toast({
         title: "Signup failed",
-        description: error.message,
+        description,
         variant: "destructive",
       });
+      console.log(error)
     }
   };
 
@@ -444,11 +467,13 @@ const SignUp = () => {
               <Form {...ongForm}>
                 <form onSubmit={ongForm.handleSubmit(onOngSubmit)} className="space-y-4">
                   {[
+                    { name: "email", label: "Email", icon: Mail },
                     { name: "name", label: "Organization Name", icon: Briefcase },
                     { name: "cnpj", label: "CNPJ", icon: Briefcase },
                     { name: "address", label: "Address", icon: MapPin },
+                    { name: "description", label: "Organization Description", icon: RectangleEllipsis },
+                    { name: "websiteUrl", label: "Website (Not Required)", icon: Globe },
                     { name: "admin", label: "Administrator Name", icon: User },
-                    { name: "email", label: "Email", icon: Mail },
                   ].map(({ name, label, icon: Icon }) => (
                     <FormField key={name} control={ongForm.control} name={name as any} render={({ field }) => (
                       <FormItem>

@@ -1,6 +1,6 @@
 // donation-chart-service.ts
 
-const API_BASE_URL: string = 'http://localhost:5107'; // Or your deployed API URL
+const API_BASE_URL: string = 'https://localhost:7142'; // Or your deployed API URL
 
 // Interface for monthly donation data point used in the chart
 export interface MonthlyDonationData {
@@ -75,9 +75,14 @@ export const fetchDonationChartData = async (filters: DonationChartFilters = {})
     }
 
     const donations = await response.json();
-    
+
+    const donationsForOrg = localStorage.getItem("userId")
+        ? donations.filter((d) => String(d.orgId) === String(localStorage.getItem("userId")))
+        : donations;
+      console.log(localStorage.getItem("userId"))
     // Process raw donation data into monthly aggregates
-    const monthlyData = processMonthlyDonationData(donations, startDate, endDate);
+    const monthlyData = processMonthlyDonationData(donationsForOrg, startDate, endDate);
+    console.log(monthlyData)
     return monthlyData;
   } catch (error) {
     console.error('Error fetching chart data:', error);
@@ -96,9 +101,19 @@ export const fetchDonationChartData = async (filters: DonationChartFilters = {})
  * @returns {MonthlyDonationData[]} Processed monthly data
  */
 function processMonthlyDonationData(donations: any[], startDate: Date, endDate: Date): MonthlyDonationData[] {
-  // Create an array of all months in the range
   const months: MonthlyDonationData[] = [];
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  // Helper function to parse DD/MM/YYYY format
+  function parseDate(dateString: string): Date {
+    const [day, month, year] = dateString.split('/').map(Number);
+    return new Date(year, month - 1, day); // month is 0-indexed in Date constructor
+  }
+  
+  // Helper function to get month-year key
+  function getMonthYearKey(date: Date): string {
+    return `${date.getFullYear()}-${date.getMonth()}`;
+  }
   
   // Initialize the result array with zeroed data for each month in range
   const currentDate = new Date(startDate);
@@ -111,23 +126,38 @@ function processMonthlyDonationData(donations: any[], startDate: Date, endDate: 
     });
     
     currentDate.setMonth(currentDate.getMonth() + 1);
-    // Avoid infinite loop if end date is in the future
-    if (months.length >= 12) break;
+    
+    // Safety check to prevent infinite loops
+    if (months.length >= 120) break; // max 10 years
+  }
+  
+  // Create a map for faster lookup - maps month-year to array index
+  const monthMap = new Map<string, number>();
+  const tempDate = new Date(startDate);
+  for (let i = 0; i < months.length; i++) {
+    monthMap.set(getMonthYearKey(tempDate), i);
+    tempDate.setMonth(tempDate.getMonth() + 1);
   }
   
   // Aggregate donation data by month
   donations.forEach(donation => {
-    const donationDate = new Date(donation.donationDate);
-    const monthIndex = donationDate.getMonth();
-    const monthKey = monthNames[monthIndex];
-    
-    // Find the corresponding month in our array
-    const monthData = months.find(m => m.month === monthKey);
-    if (monthData) {
-      monthData.donations += 1;
-      monthData.TotalAmount += donation.donationAmount || 0;
+    try {
+      const donationDate = parseDate(donation.donationDate);
+      const monthYearKey = getMonthYearKey(donationDate);
+      
+      // Check if this donation falls within our date range
+      if (donationDate >= startDate && donationDate <= endDate) {
+        const monthIndex = monthMap.get(monthYearKey);
+        if (monthIndex !== undefined) {
+          months[monthIndex].donations += 1;
+          months[monthIndex].TotalAmount += donation.donationAmount || 0;
+        }
+      }
+    } catch (error) {
+      console.warn('Invalid date format:', donation.donationDate);
     }
   });
   
   return months;
 }
+
