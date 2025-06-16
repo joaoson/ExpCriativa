@@ -64,8 +64,17 @@ const ongSchema = z.object({
   phone: phoneValidation,
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string().min(6, { message: "Please confirm your password" }),
-  websiteUrl: z.string().url({ message: "Please enter a valid URL (e.g https://yoursite.com)" }).optional(),
-}).refine((data) => data.password === data.confirmPassword, {
+  websiteUrl: z.string()
+  .optional()
+  .refine((val) => {
+    if (!val || val.trim() === '') return true;
+    try {
+      new URL(val);
+      return true;
+    } catch {
+      return false;
+    }
+  }, { message: "Please enter a valid URL (e.g https://yoursite.com) or leave empty" })}).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 }).transform((data) => {
@@ -164,7 +173,7 @@ const SignUp = () => {
       formData.append('OrgAddress', values.address);
       formData.append('OrgDescription', "asdsad");
       formData.append('OrgAdminName', values.admin);
-      formData.append('OrgWebsiteUrl', values.websiteUrl ?? "Not available");
+      formData.append('OrgWebsiteUrl', values.websiteUrl && values.websiteUrl.trim() !== '' ? values.websiteUrl : "");
       formData.append('OrgAdminPhone', values.phone.phoneNumber);
         
       const response = await fetch('https://localhost:7142/api/Users/register/org', {

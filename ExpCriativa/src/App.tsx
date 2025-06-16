@@ -22,6 +22,7 @@ import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import DonationHistory from "./pages/DonationHistory";
 import ListedOrganizations from "./pages/ListedOrganizations";
+import Donors from "./components/Donors";
 
 
 
@@ -54,6 +55,7 @@ const App = () => {
               <Route path="/donations" element={<DonationHistory />} />
               <Route path="/organization/:id" element={<Organization />} />
               <Route path="/search" element={<ListedOrganizations />} />
+              <Route path="/donors" element={<Donors />} />
 
             {/* Add other protected routes here */}
             </Route>

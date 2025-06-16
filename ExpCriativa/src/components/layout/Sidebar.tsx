@@ -23,18 +23,28 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Analytics', href: '/analytics', icon: ChartBarBig },
   { name: 'Donors', href: '/donors', icon: Users },
   { name: 'Donations', href: '/donations', icon: BadgeDollarSign },
-  { name: 'Reports', href: '/reports', icon: FileText },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-const Sidebar = () => {
+// Option 1: Using props (recommended)
+interface SidebarProps {
+  organizationName?: string;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ organizationName = "Charity Organization" }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { logout } = useAuth();
+
+  // Option 2: State variable you can modify within the component
+  const [orgName, setOrgName] = useState("Charity Organization");
+
+  // Option 3: You could also use a constant at the top of the component
+  // const ORGANIZATION_NAME = "Your Custom Organization Name";
 
   return (
     <div 
@@ -46,7 +56,7 @@ const Sidebar = () => {
       <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200">
         <div className={cn("flex items-center", collapsed ? "justify-center w-full" : "")}>
           {!collapsed && (
-            <span className="font-bold text-xl tracking-tight text-lumen-700">Charity</span>
+            <span className="font-bold text-xl tracking-tight text-lumen-700">Navigation</span>
           )}
           {collapsed && (
             <HandHeart className="text-lumen-700" size={28} />
@@ -90,11 +100,20 @@ const Sidebar = () => {
           </div>
           {!collapsed && (
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700">Charity Organization</p>
+              {/* Using the prop value (Option 1) */}
+              <p className="text-sm font-medium text-gray-700">{organizationName}</p>
+              
+              {/* Alternative: Using state variable (Option 2) */}
+              {/* <p className="text-sm font-medium text-gray-700">{orgName}</p> */}
+              
+              {/* Alternative: Using constant (Option 3) */}
+              {/* <p className="text-sm font-medium text-gray-700">{ORGANIZATION_NAME}</p> */}
+              
               <p className="text-xs text-gray-500">Admin</p>
-              <p onClick={logout} className="text-xs text-red-500">Logout</p>
+              <p onClick={logout} className="text-xs text-red-500 hover:text-red-700 cursor-pointer">
+                Logout
+              </p>
             </div>
-            
           )}
         </div>
       </div>

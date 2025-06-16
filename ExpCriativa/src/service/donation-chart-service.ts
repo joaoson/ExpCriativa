@@ -1,6 +1,6 @@
 // donation-chart-service.ts
 
-const API_BASE_URL: string = 'http://localhost:5107'; // Or your deployed API URL
+const API_BASE_URL: string = 'https://localhost:7142'; // Or your deployed API URL
 
 // Interface for monthly donation data point used in the chart
 export interface MonthlyDonationData {
