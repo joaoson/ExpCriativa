@@ -24,12 +24,6 @@ const personSchema = z.object({
     password: z
       .string()
       .min(6, { message: "Password must be at least 6 characters" })
-      .optional()
-      .or(z.literal('')),
-    newPassword: z
-      .string()
-      .min(6, { message: "Password must be at least 6 characters" })
-      .optional()
       .or(z.literal('')),
     phone: phoneValidation,
     cpf: z
@@ -37,35 +31,12 @@ const personSchema = z.object({
       .optional(),
     birth: z.string().optional()
   })
-  .refine(
-    (data) => {
-    if (data.password && !data.newPassword) {
-        return false;
-    }
-
-    if (!data.password && data.newPassword) {
-        return false;
-    }
-
-    return true;
-    },   
-    {
-      message: "Passwords don't match",
-      path: ["confirmPassword"],
-    }
-    
-  )
   .transform((data) => {
     if (data.phone) {
       data.phone.phoneNumber = data.phone.phoneNumber.replace(/\D/g, '');
     }
 
-    if (!data.password) {
-      delete data.password;
-      delete data.newPassword;
-    }
-
-return data;
+    return data;
 });
 
 interface UpdateDonorProfileProps {
@@ -79,7 +50,6 @@ const UpdateDonorProfile = ({ onClose }: UpdateDonorProfileProps) => {
           name: "",
           email: "",
           password: "",
-          newPassword: "",
           cpf: "",
           birth: "",
           phone: {
@@ -91,6 +61,7 @@ const UpdateDonorProfile = ({ onClose }: UpdateDonorProfileProps) => {
 
     const token = localStorage.getItem("accessToken");
     const id = localStorage.getItem("userId")
+    const email = localStorage.getItem("userEmail")
     
     const { getJwtToken, login, parseJwt } = useAuth();
     const { toast } = useToast();
@@ -159,7 +130,7 @@ const UpdateDonorProfile = ({ onClose }: UpdateDonorProfileProps) => {
         try {
             const body = {
                 userEmail: values.email,
-                userPassword: values.newPassword,
+                userPassword: values.password,
                 role: user.role
             }
 
@@ -187,8 +158,8 @@ const UpdateDonorProfile = ({ onClose }: UpdateDonorProfileProps) => {
         try {
             await updateDonor(values)
 
-            if (values.password && values.newPassword) {
-                const tokenUpdate = await getJwtToken(values.email, values.password)
+            if (values.password) {
+                const tokenUpdate = await getJwtToken(email, values.password)
 
                 if (!tokenUpdate) {
                     throw new Error(`Invalid token`);
@@ -196,8 +167,8 @@ const UpdateDonorProfile = ({ onClose }: UpdateDonorProfileProps) => {
 
                 await updateCoreUser(values)
 
-                const token = await getJwtToken(values.email, values.newPassword)
-                console.log(values.newPassword)
+                const token = await getJwtToken(values.email, values.password)
+                console.log(values.password)
                 const payload = parseJwt(token);
                 const userEmail = payload.sub;
     
@@ -341,13 +312,12 @@ const UpdateDonorProfile = ({ onClose }: UpdateDonorProfileProps) => {
                 )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                     control={personForm.control}
                     name="password"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Current Password (Optional)</FormLabel>
+                        <FormLabel>Current Password</FormLabel>
                         <FormControl>
                         <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
@@ -363,29 +333,6 @@ const UpdateDonorProfile = ({ onClose }: UpdateDonorProfileProps) => {
                     </FormItem>
                     )}
                 />
-
-                <FormField
-                    control={personForm.control}
-                    name="newPassword"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>New Password (Optional)</FormLabel>
-                        <FormControl>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-charity-gray h-5 w-5" />
-                            <Input
-                            type="password"
-                            placeholder="••••••••"
-                            className="pl-10"
-                            {...field}
-                            />
-                        </div>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                </div>
 
                 <Button
                 type="submit"
