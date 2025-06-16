@@ -64,7 +64,7 @@ export const DonationPayment: React.FC<DonationDialogProps> = ({ organization, o
       donationMethod: "PIX",
       donationDate: new Date(),
       donationAmount: donationAmount,
-      status: 2,
+      status: 1,
       donationIsAnonymous: false,
       donationDonorMessage: donationMessage,
       donorId: userId,
