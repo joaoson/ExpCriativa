@@ -9,14 +9,12 @@ import {
   LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
+import { useAuth } from '@/components/auth-context';
 /* ------------------------------------------------------------------ */
 /* Fake auth – troque pela real                                       */
 /* ------------------------------------------------------------------ */
-const useAuth = () => ({
-  logout: () => console.log('Logging out…'),
-  user: { name: 'Charity Organization', role: 'Admin', avatar: 'CO' },
-});
+
+const user ={ name: 'Charity Organization', role: 'Admin', avatar: 'CO' }
 
 /* ------------------------------------------------------------------ */
 /* Header                                                              */
@@ -30,7 +28,7 @@ const Header: React.FC = () => {
     () => localStorage.getItem('theme') === 'dark' || prefersDark,
   );
 
-  const { logout, user } = useAuth();
+  const { login, isAuthenticated, parseJwt, getJwtToken, logout} = useAuth();
 
   /* Rota atual */
   const location = useLocation();
