@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast, useToast } from '@/hooks/use-toast';
 import { formatCNPJ, phoneValidation, randomIntFromInterval, validateCNPJ } from '@/lib/utils';
 import { OrganizationResponse } from '@/models/OrganizationResponse';
@@ -295,11 +295,14 @@ const Organization = () => {
                         </div>
                       </DialogContent>
                     </Dialog>
+                      <Link to={`/dashboard`}>
+                        <Button variant="outline" className="flex items-center gap-2">
+                          
+                            <UserRoundPen className="w-4 h-4" />
+                              Edit Profile
+                        </Button>
+                      </Link>
 
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <UserRoundPen className="w-4 h-4" />
-                        Edit Profile
-                    </Button>
                   </>
                   )}
               </div>

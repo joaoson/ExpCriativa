@@ -17,7 +17,7 @@ const DonationsFilter = ({
         <Input
           id="search"
           type="text"
-          placeholder="Search by donor message"
+          placeholder="Search by donor message or organization name"
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
