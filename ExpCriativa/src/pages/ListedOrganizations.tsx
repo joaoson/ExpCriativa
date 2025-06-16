@@ -46,10 +46,10 @@ const ListedOrganizations = () => {
     )
     .sort((a, b) => {
     switch (sortOrder) {
-        case 'date-desc':
-            return new Date(b.orgFoundationDate).getTime() - new Date(a.orgFoundationDate).getTime();
-        case 'date-asc':
-            return new Date(a.orgFoundationDate).getTime() - new Date(b.orgFoundationDate).getTime();
+        // case 'date-desc':
+        //     return new Date(b.orgFoundationDate).getTime() - new Date(a.orgFoundationDate).getTime();
+        // case 'date-asc':
+        //     return new Date(a.orgFoundationDate).getTime() - new Date(b.orgFoundationDate).getTime();
         case 'name-desc':
             return b.orgName.localeCompare(a.orgName);
         case 'name-asc':
@@ -97,8 +97,8 @@ const ListedOrganizations = () => {
                 <SelectContent>
                   <SelectItem value="name-asc">Sort by Name (A-Z)</SelectItem>
                   <SelectItem value="name-desc">Sort by Name (Z-A)</SelectItem>
-                  <SelectItem value="date-desc">Sort by Newest</SelectItem>
-                  <SelectItem value="date-asc">Sort by Oldest</SelectItem>
+                  {/* <SelectItem value="date-desc">Sort by Newest</SelectItem>
+                  <SelectItem value="date-asc">Sort by Oldest</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>
@@ -129,10 +129,10 @@ const ListedOrganizations = () => {
                       {org.description}
                     </p>
                     <div className="space-y-2 border-t border-gray-100 pt-3 text-charity-gray">
-                        <div className="flex items-center">
+                        {/* <div className="flex items-center">
                           <Calendar className="w-4 h-4 mr-2 text-charity-orange/80 flex-shrink-0" />
                           <span>Founded on {org.orgFoundationDate.toString()}</span>
-                      </div>
+                      </div> */}
                       <div className="flex items-center">
                           <Globe className="w-4 h-4 mr-2 text-charity-orange/80 flex-shrink-0" />
                           <a href={`http://${org.orgWebsiteUrl}`} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">

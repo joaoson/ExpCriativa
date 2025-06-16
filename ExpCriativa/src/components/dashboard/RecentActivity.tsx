@@ -214,7 +214,7 @@ const RecentActivity = () => {
                   alt={donation.donationIsAnonymous ? "Anonymous" : donation.donorName} 
                 />
                 <AvatarFallback className="bg-lumen-100 text-lumen-700">
-                  {donation.donationIsAnonymous ? "A" : getInitials(donation.donorName)}
+                  {donation.donationIsAnonymous ? "A" : donation.donorName}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1">

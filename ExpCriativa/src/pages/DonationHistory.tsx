@@ -10,9 +10,9 @@ import { Link, useNavigate } from "react-router-dom";
 
 function getStatusInfo(status: number): { text: string; color: string } {
     switch(status) {
-        case 1: // Assuming 1 is Completed
+        case 2: // Assuming 1 is Completed
             return { text: "Completed", color: "bg-green-100 text-green-800" };
-        case 2: // Assuming 2 is Pending
+        case 1: // Assuming 2 is Pending
             return { text: "Pending", color: "bg-yellow-100 text-yellow-800" };
         case 3: // Assuming 3 is Cancelled
             return { text: "Cancelled", color: "bg-red-100 text-red-800" };
