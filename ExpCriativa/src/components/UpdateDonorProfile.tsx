@@ -23,8 +23,7 @@ const personSchema = z.object({
     email: z.string().email({ message: "Please enter a valid email address" }),
     password: z
       .string()
-      .min(6, { message: "Password must be at least 6 characters" })
-      .or(z.literal('')),
+      .min(6, { message: "Password must be at least 6 characters" }),
     phone: phoneValidation,
     cpf: z
       .string()
@@ -103,7 +102,8 @@ const UpdateDonorProfile = ({ onClose }: UpdateDonorProfileProps) => {
             formData.append("Name", values.name);
             formData.append("Document", user.donorProfile.document);
             formData.append("Phone", values.phone.phoneNumber);
-            formData.append("BirthDate", new Date(user.donorProfile.birthDate).toISOString());
+            const formattedDate = formatDateBRtoUS(user.donorProfile.birthDate)
+            formData.append("BirthDate", new Date(formattedDate).toISOString());
             // const shouldClearImage = false;
             // formData.append("ClearImage", String(shouldClearImage));
 

@@ -171,7 +171,7 @@ const SignUp = () => {
       formData.append('OrgPhone', values.phone.phoneNumber);
       formData.append('OrgDocument', values.cnpj);
       formData.append('OrgAddress', values.address);
-      formData.append('OrgDescription', "asdsad");
+      formData.append('OrgDescription', values.description),
       formData.append('OrgAdminName', values.admin);
       formData.append('OrgWebsiteUrl', values.websiteUrl && values.websiteUrl.trim() !== '' ? values.websiteUrl : "");
       formData.append('OrgAdminPhone', values.phone.phoneNumber);

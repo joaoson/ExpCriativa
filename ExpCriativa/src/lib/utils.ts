@@ -2,6 +2,12 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { z } from "zod";
 
+export const formatDate = (dateString) => {
+  if (!dateString || typeof dateString !== 'string') return '';
+  const [day, month, year] = dateString.split('/');
+  return `${year}-${month}-${day}`;
+};
+
 export function formatDateBRtoUS(date: string) {
   const [day, month, year] = date.split("/");
   // Create a Date object (format: yyyy-MM-dd)
