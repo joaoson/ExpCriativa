@@ -13,6 +13,8 @@ import {
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { useAuth } from './auth-context';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import UpdateDonorProfile from './UpdateDonorProfile';
 
 type NavbarProps = {
   labels: LabelProp[],
@@ -30,8 +32,13 @@ const Navbar = ({
 } : NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false)
   const { logout } = useAuth();
   
+  const email = localStorage.getItem("userEmail")
+  const role = localStorage.getItem("role")
+  const userId = localStorage.getItem("userId")
+  const isDonor = role === "1"
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,6 +52,10 @@ const Navbar = ({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  function onClose() {
+    setIsProfileDialogOpen(false)
+  }
 
   return (
     <header
@@ -77,12 +88,32 @@ const Navbar = ({
           </a>
 
           <nav className="hidden md:flex items-center space-x-8">
-            {labels.map((i, index) => 
-              (
-                <NavLink key={index} href={i.href} isScrolled={isScrolled}>{i.text}</NavLink>
-              )
+
+            {!isAuthenticated && (
+              <>
+                <NavLink href="#about" isScrolled={isScrolled}>About</NavLink>
+                <NavLink href="#impact" isScrolled={isScrolled}>Impact</NavLink>
+                <NavLink href="#stories" isScrolled={isScrolled}>Stories</NavLink>
+              </>
+            )}
+
+            {isAuthenticated && (
+              <>
+                <NavLink href="/search" isScrolled={isScrolled}>Organizations</NavLink>
+                {isDonor && (
+                  <NavLink href="/donations" isScrolled={isScrolled}>My Donations</NavLink>
+                )}
+
+                {!isDonor && (
+                  <>
+                    <NavLink href="/dashboard" isScrolled={isScrolled}>Dashboard</NavLink>
+                    <NavLink href={`/organization/${userId}`} isScrolled={isScrolled}>Profile</NavLink>
+                  </>
+                )}
+              </>
             )}
           </nav>
+            
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ?
               (
@@ -92,18 +123,50 @@ const Navbar = ({
                       <UserRound />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-34">
-                      <DropdownMenuLabel>John Doe</DropdownMenuLabel>
+                      <DropdownMenuLabel>{email}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <Link to={"/profile"}>
-                        <DropdownMenuItem>
-                          View Profile
-                        </DropdownMenuItem>
-                      </Link>
-                      <Link to={"/donations"}>
-                        <DropdownMenuItem>
-                          Donation History
-                        </DropdownMenuItem>
-                      </Link>
+                      {isDonor && (
+                        <>
+                          <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+                            <DialogTrigger asChild>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                Edit Profile
+                              </DropdownMenuItem>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Update Your Profile</DialogTitle>
+                                <DialogDescription>
+                                  Keep your information updated!
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="grid gap-4 py-4">
+                                <UpdateDonorProfile onClose={onClose}></UpdateDonorProfile>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                          <Link to={"/donations"}>
+                            <DropdownMenuItem>
+                              Donation History
+                            </DropdownMenuItem>
+                          </Link>
+                        </>
+                      )}
+
+                      {!isDonor && (
+                        <>
+                          <Link to={`/organization/${userId}`}>
+                            <DropdownMenuItem>
+                              View Profile
+                            </DropdownMenuItem>
+                          </Link>
+                          <Link to={"/dashboard"}>
+                            <DropdownMenuItem>
+                              Dashboard
+                            </DropdownMenuItem>
+                          </Link>
+                        </>
+                      )}
                       <DropdownMenuItem onClick={logout}>
                         Logout
                       </DropdownMenuItem>
@@ -147,16 +210,39 @@ const Navbar = ({
         {isMobileMenuOpen && (
           <div className="md:hidden absolute inset-x-0 top-full px-2 pb-3 pt-2 glassmorphism shadow-medium animate-slide-down rounded-b-xl">
             <div className="px-4 py-2 space-y-1">
-              {labels.map(i => (
-                <MobileNavLink href={i.href} onClick={() => setIsMobileMenuOpen(false)}>{i.text}</MobileNavLink>
-              ))}
-              <div className="pt-2">
-                <Link to={isAuthenticated ? "/organization" : "login"}>
-                  <Button variant='default' className="w-full py-2">
-                      {isAuthenticated ? "Your Profile" : "Log In"}
-                  </Button>
-                </Link>
-              </div>
+
+                {!isAuthenticated && (
+                  <>
+                    <MobileNavLink href="#about" onClick={() => setIsMobileMenuOpen(false)}>About</MobileNavLink>
+                    <MobileNavLink href="#impact" onClick={() => setIsMobileMenuOpen(false)}>Impact</MobileNavLink>
+                    <MobileNavLink href="#stories" onClick={() => setIsMobileMenuOpen(false)}>Stories</MobileNavLink>
+                    <MobileNavLink href="/login" onClick={() => setIsMobileMenuOpen(false)}>Log In</MobileNavLink>
+                    <MobileNavLink href="/signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</MobileNavLink>
+                  </>
+                )}
+
+                {isAuthenticated && (
+                  <>
+                    <MobileNavLink href="/search" onClick={() => setIsMobileMenuOpen(false)}>Organizations</MobileNavLink>
+                    {isDonor && (
+                      <MobileNavLink href="/donations" onClick={() => setIsMobileMenuOpen(false)}>My Donations</MobileNavLink>
+                    )}
+                    {!isDonor && (
+                      <>
+                        <MobileNavLink href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</MobileNavLink>
+                        <MobileNavLink href={`/organization/${userId}`} onClick={() => setIsMobileMenuOpen(false)}>Profile</MobileNavLink>
+
+                      </>
+                    )}
+                    <MobileNavLink href="" onClick={
+                      () => {
+                        setIsMobileMenuOpen(false)
+                        logout()
+                      }
+                      }>Logout</MobileNavLink>
+
+                  </>
+                )}
 
             </div>
           </div>

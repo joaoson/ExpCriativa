@@ -1,7 +1,7 @@
 // data-query-service.ts
 
 // Replace with your actual API base URL
-const API_BASE_URL: string = 'http://localhost:5107'; // Or your deployed API URL
+const API_BASE_URL: string = 'https://localhost:7142'; // Or your deployed API URL
 
 // --- Interfaces based on swagger.json and component usage ---
 
@@ -13,7 +13,6 @@ interface OrgDto {
   orgFoundationDate?: string; // Assuming date-time string
   adminName?: string | null;
   adminPhone?: string | null;
-  // Add any other fields from OrgDto if needed elsewhere
 }
 
 interface DonationDto {
@@ -26,7 +25,6 @@ interface DonationDto {
   donationDonorMessage?: string | null;
   donorId: number; // Assuming non-nullable as it's key for donorCount
   orgId: number;   // Assuming non-nullable
-  // Add any other fields from DonationDto if needed elsewhere
 }
 
 // Interface for the data structure expected by the component for organizations
