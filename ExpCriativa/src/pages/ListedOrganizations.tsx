@@ -64,7 +64,7 @@ const ListedOrganizations = () => {
     }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-charity-light-blue/20 py-20">
+    <div className="min-h-screen flex flex-col bg-charity-light-blue/20 pt-20">
       <Navbar labels={labels} isAuthenticated={true} />
       
       <main className="flex-grow">

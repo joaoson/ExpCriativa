@@ -28,12 +28,10 @@ const projectSchema = z.object({
 });
 
 const Organization = () => {
-   const labels : LabelProp[] = [
-      {href: "#about", text: "About"},
-      {href: "#impact", text: "Our Impact"},
-      {href: "#stories", text: "Stories"},
-      {href: "#donate", text: "Donate"}
-  ];
+  const labels: LabelProp[] = [
+          { href: "/donations", text: "My Donations" },
+          { href: "/organizations", text: "Organizations" },
+      ];
 
   const sample = {
     images: [

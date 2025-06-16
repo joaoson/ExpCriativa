@@ -22,7 +22,7 @@ function getStatusInfo(status: number): { text: string; color: string } {
 }
 
 const labels : LabelProp[] = [
-    {href: "/organizations", text: "Organizations"},
+    {href: "/search", text: "Organizations"},
     {href: "/donations", text: "My Donations"},
 ];
 
