@@ -96,3 +96,16 @@ export const phoneValidation = z.object({
   },
   { message: "Invalid phone number format" }
 );
+
+export function formatCNPJ(cnpj: string) {
+  return cnpj
+    .slice(0, 14) 
+    .replace(/^(\d{2})/, '$1.') 
+    .replace(/^(\d{2})\.(\d{3})/, '$1.$2.')
+    .replace(/^(\d{2})\.(\d{3})\.(\d{3})/, '$1.$2.$3/')
+    .replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})/, '$1.$2.$3/$4-');
+};
+
+export function randomIntFromInterval(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}

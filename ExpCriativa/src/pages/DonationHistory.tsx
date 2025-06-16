@@ -1,6 +1,6 @@
 import DonationsFilter from "@/components/DonationsFilter";
 import Navbar, { LabelProp } from "@/components/Navbar";
-import { Donations } from "@/models/Donations";
+import { DonationResponse } from "@/models/DonationResponse";
 import { CircleDollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -29,7 +29,7 @@ const labels : LabelProp[] = [
 
 const DonationHistory = () => {
 
-    let [donations, setDonations] = useState<Donations[]>([])
+    let [donations, setDonations] = useState<DonationResponse[]>([])
     let [searchQuery, setSearchQuery] = useState("");
     
     const token = localStorage.getItem("accessToken");
@@ -44,7 +44,7 @@ const DonationHistory = () => {
             },
             });
 
-            const data: Donations[] = await response.json();
+            const data: DonationResponse[] = await response.json();
             setDonations(data);
             console.log(data)
         } catch (error) {
@@ -118,10 +118,10 @@ const DonationHistory = () => {
                         <p className="text-charity-dark text-sm mb-2 font-light">
                             {donation.donationDonorMessage || "No message"}
                         </p>
-                        <div className={
+                        {/* <div className={
                             `text-xs ${changeStatusColor(donation.donationStatus)}`}>
                             {donation.donationStatus}
-                        </div>
+                        </div> */}
                         </div>
                     ))}
                 </section>

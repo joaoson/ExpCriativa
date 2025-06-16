@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
-import OrganizationProfile from "./pages/Organization";
+import Organization from "./pages/Organization";
 import SignUp from "./pages/SignUp";
 import ProtectedRoute from './components/protected-route';
 import { AuthProvider } from './components/auth-context';
@@ -43,7 +43,6 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/test" element={<Test />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/organization" element={<OrganizationProfile />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/cookie-policy" element={<CookiePolicy />} />
@@ -53,7 +52,8 @@ const App = () => {
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard/>} />
               <Route path="/donations" element={<DonationHistory />} />
-                <Route path="/profile" element={<ProfilePerson />} />
+              <Route path="/profile" element={<ProfilePerson />} />
+              <Route path="/organization/:id" element={<Organization />} />
             {/* Add other protected routes here */}
             </Route>
             <Route path="/" element={<Index />} />

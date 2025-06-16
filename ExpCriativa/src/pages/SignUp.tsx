@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Briefcase, CalendarIcon, Heart, Lock, Mail, MapPin, RectangleEllipsis, User } from 'lucide-react';
+import { ArrowLeft, Briefcase, CalendarIcon, Globe, Heart, Lock, Mail, MapPin, RectangleEllipsis, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AnimatedIcon from '@/components/AnimatedIcon';
 import { format, differenceInYears } from 'date-fns';
@@ -21,7 +21,6 @@ import {
 import { validateCNPJ, validateCPF, phoneValidation } from '@/lib/utils';
 import { useAuth } from '@/components/auth-context';
 import { UserResponse } from '@/models/UserResponse';
-
 
 // Signup Schema
 const personSchema = z.object({
@@ -65,6 +64,7 @@ const ongSchema = z.object({
   phone: phoneValidation,
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string().min(6, { message: "Please confirm your password" }),
+  websiteUrl: z.string().url({ message: "Please enter a valid URL" }).optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -149,15 +149,13 @@ const SignUp = () => {
       name: "", cnpj: "", address: "", admin: "",
       email: "", password: "", confirmPassword: "",
       phone: { countryCode: "BR", phoneNumber: "" },
-      description: ""
+      description: "", websiteUrl: ""
     }
     });
  
   async function onOngSubmit (values: z.infer<typeof ongSchema>) {
     try {
-
       const formData = new FormData();
-
       formData.append('UserEmail', values.email);
       formData.append('UserPassword', values.password);
       formData.append('OrgName', values.name);
@@ -166,7 +164,7 @@ const SignUp = () => {
       formData.append('OrgAddress', values.address);
       formData.append('OrgDescription', "asdsad");
       formData.append('OrgAdminName', values.admin);
-      formData.append('OrgWebsiteUrl', "add campo");
+      formData.append('OrgWebsiteUrl', values.websiteUrl ?? "Not available");
       formData.append('OrgAdminPhone', values.phone.phoneNumber);
         
       const response = await fetch('https://localhost:7142/api/Users/register/org', {
@@ -438,12 +436,13 @@ const SignUp = () => {
               <Form {...ongForm}>
                 <form onSubmit={ongForm.handleSubmit(onOngSubmit)} className="space-y-4">
                   {[
+                    { name: "email", label: "Email", icon: Mail },
                     { name: "name", label: "Organization Name", icon: Briefcase },
                     { name: "cnpj", label: "CNPJ", icon: Briefcase },
                     { name: "address", label: "Address", icon: MapPin },
-                    { name: "admin", label: "Administrator Name", icon: User },
                     { name: "description", label: "Organization Description", icon: RectangleEllipsis },
-                    { name: "email", label: "Email", icon: Mail },
+                    { name: "websiteUrl", label: "Website (Not Required)", icon: Globe },
+                    { name: "admin", label: "Administrator Name", icon: User },
                   ].map(({ name, label, icon: Icon }) => (
                     <FormField key={name} control={ongForm.control} name={name as any} render={({ field }) => (
                       <FormItem>
