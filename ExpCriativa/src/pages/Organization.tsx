@@ -18,6 +18,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { DonationPayment } from '@/components/DonationPayment';
 
 
 const projectSchema = z.object({
@@ -49,6 +50,7 @@ const Organization = () => {
   let [projects, setProjects] = useState<ProjectResponse[]>([])
   let [donations, setDonations] = useState<DonationResponse[]>([])
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+  const [isDonationDialogOpen, setIsDonationDialogOpen] = useState(false);
 
   const { id } = useParams();
 
@@ -59,6 +61,7 @@ const Organization = () => {
   const navigate = useNavigate();
 
   const canEdit = userId == id && role === "2"
+  const canDonate = role === "1"
 
   const fetchOrganization = async () => {
       try {
@@ -90,7 +93,7 @@ const Organization = () => {
           const data: ProjectResponse[] = await response.json();
           setProjects(data);
       } catch (error) {
-          console.error("Failed to fetch projects:", error);
+          setProjects([])
       }
   }
 
@@ -110,6 +113,10 @@ const Organization = () => {
     } catch (error) {
         console.error("Failed to fetch donations:", error);
     }
+  }
+
+  const onClose = () => {
+    setIsDonationDialogOpen(false)
   }
 
   const projectForm = useForm<z.infer<typeof projectSchema>>({
@@ -196,25 +203,26 @@ const Organization = () => {
                   </div>
                 </div>
               </div>
-              
-              <div className="flex gap-3 mt-4 md:mt-0">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="btn-primary px-5 py-2">Donate Now</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Support Our Mission</DialogTitle>
-                      <DialogDescription>
-                        Your donation helps us continue our important work worldwide.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <p>Aqui seria a tela de pagamento (SPRINT 2)</p>
-                    </div>
-                  </DialogContent>
-                </Dialog>
 
+              <div className="flex gap-3 mt-4 md:mt-0">
+                {canDonate && (
+                  <Dialog open={isDonationDialogOpen} onOpenChange={setIsDonationDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="btn-primary px-5 py-2">Donate Now</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Support {organization?.orgName}</DialogTitle>
+                        <DialogDescription>
+                          Your generosity can make a difference in the world!
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <DonationPayment organization={organization} onClose={onClose}/>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
                 {canEdit && (
                   <>
                     <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>

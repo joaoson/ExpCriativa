@@ -8,4 +8,5 @@ export interface DonationResponse {
     donationDonorMessage: string,
     donorId: number,
     orgId: number
+    orgName?: string,
 }
