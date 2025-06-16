@@ -1,5 +1,5 @@
 
-import { User, MapPin, Globe, Phone, Mail, Heart, Users, Award, ArrowRight, UserRoundPen, Lock, Briefcase, IdCard, CirclePlus, RectangleEllipsis } from 'lucide-react';
+import { User, MapPin, Globe, Phone, Mail, Heart, Users, Award, ArrowRight, UserRoundPen, Lock, Briefcase, IdCard, CirclePlus, RectangleEllipsis, Trash2 } from 'lucide-react';
 import Navbar, { LabelProp } from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +19,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { DonationPayment } from '@/components/DonationPayment';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 
 const projectSchema = z.object({
@@ -154,6 +155,34 @@ const Organization = () => {
           console.error("Failed to fetch donations:", error);
           toast({ title: "Error", description: "Could not create the project.", variant: "destructive" });
       }
+  };
+
+  const deleteProject = async (projectId: number) => {
+    try {
+        const response = await fetch(`https://localhost:7142/api/Projects/${projectId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete the project.');
+        }
+
+        setProjects(prevProjects => prevProjects.filter(p => p.id !== projectId));
+        toast({
+            title: 'Project Deleted',
+            description: 'The project has been successfully removed.',
+        });
+    } catch (error) {
+        console.error('Deletion failed:', error);
+        toast({
+            title: 'Deletion Failed',
+            description: 'Could not delete the project. Please try again.',
+            variant: 'destructive',
+        });
+    }
   };
 
   useEffect(() => {
@@ -377,7 +406,28 @@ const Organization = () => {
                             />
                           </div>
                           <div className="flex-grow">
-                            <h3 className="text-lg font-semibold text-gray-800">{project.name}</h3>
+                              <div className="flex justify-between items-start">
+                                <h3 className="text-lg font-semibold text-gray-800 pr-2">{project.name}</h3>
+                                {canEdit && (
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="text-red-500 hover:bg-red-100 hover:text-red-600 h-8 w-8 flex-shrink-0">
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>This action cannot be undone. This will permanently delete the project "{project.name}".</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => deleteProject(project.id)} className="bg-red-600 hover:bg-red-700">Delete Project</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                )}
+                               </div>
                             <div className="flex items-center text-sm text-gray-500 mb-2">
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5 text-orange-500"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                               <span>{project.address}</span>
